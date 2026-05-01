@@ -61,37 +61,85 @@ type SymbolicRef = {
 type ResolveContext = {
   // Optional path context — used by Pathways to emit /app/pathways/<pathSlug>/...
   pathSlug?: string
-  // Locale (cmi5 translations share au_id; resolver may inject locale param)
+  // Optional locale. Each platform decides how to inject it (e.g. `?lang=es`,
+  // a `/es` path prefix, an Accept-Language header). cmi5 translations share
+  // au_id with their source-language counterparts, so the slug-path stays
+  // the same across locales — the resolver mutates the URL, not the ref.
+  // DojoOS today does not yet localize URLs; this field is a forward hook.
   locale?: 'en' | 'es'
 }
 ```
 
-For DojoOS Pathways the resolver is roughly:
+`parseSymbolicRef` and `resolveSymbolicRef` are split for testability — the parser owns Markdown grammar, the resolver owns route schema. Both are exported.
+
+#### `parseSymbolicRef`
+
+```typescript
+function parseSymbolicRef(text: string): SymbolicRef | null
+```
+
+Accepts these input forms:
+
+| Input | Returns |
+|---|---|
+| `[course:dojo-mindset]` | `{type: 'course', slugPath: 'dojo-mindset'}` |
+| `[Display text][course:dojo-mindset]` (reference-style) | `{type: 'course', slugPath: 'dojo-mindset'}` (display text is preserved by the surrounding Markdown engine; parser ignores it) |
+| `[course:dojo-mindset](some-url)` (inline-style with explicit URL) | `null` — the author has pinned a URL, treat as a regular Markdown link, do not double-resolve |
+| `[unknown-type:foo]` | `null` — the parser refuses unknown type prefixes; the surrounding Markdown engine renders the bracketed text as plain text |
+| Plain Markdown link `[text](https://...)` | `null` — parser only matches symbolic shapes |
+
+Edge cases:
+
+- Display text containing `:` or nested `[]` — the parser anchors on the LAST `[<knownType>:<path>]` segment and treats anything before it as display text. Implementations may use a regex like `/(\[[^\]]+\])?\[(course|module|lesson|video-lesson|assessment|simulation|final-assessment):([^\]]+)\]/`.
+- Slug-path containing whitespace or `:` — invalid; parser returns `null`.
+
+Implementations on different platforms must agree on the input grammar. Tests in `examples/cross-references-example/` will pin the contract once Phase 1 lands.
+
+#### `resolveSymbolicRef` (DojoOS reference implementation)
 
 ```typescript
 function resolveSymbolicRef(ref: SymbolicRef, ctx: ResolveContext): string {
-  const [courseSlug, ...rest] = ref.slugPath.split('/')
+  const segments = ref.slugPath.split('/')
+  const courseSlug = segments[0]
+
+  // Course-level base path is reused by every other case below.
+  const courseBase = ctx.pathSlug
+    ? `/app/pathways/${ctx.pathSlug}/courses/${courseSlug}`
+    : `/app/courses/${courseSlug}`
+
   switch (ref.type) {
     case 'course':
-      return ctx.pathSlug
-        ? `/app/pathways/${ctx.pathSlug}/courses/${courseSlug}`
-        : `/app/courses/${courseSlug}`
+      return courseBase
+
+    case 'module': {
+      // Modules do not have their own page in DojoOS today — they render
+      // inline on the course home, with a deep-link anchor per module.
+      const moduleSlug = segments[1]
+      return `${courseBase}#${moduleSlug}`
+    }
+
     case 'lesson':
+    case 'video-lesson':
     case 'assessment':
     case 'simulation':
-    case 'video-lesson':
     case 'final-assessment': {
-      const classSlug = rest[rest.length - 1]
-      const base = ctx.pathSlug
-        ? `/app/pathways/${ctx.pathSlug}/courses/${courseSlug}`
-        : `/app/courses/${courseSlug}`
-      return `${base}?class=${classSlug}`
+      // Both module-scoped lessons (`courseSlug/moduleSlug/classSlug`) and
+      // workbook lessons (`courseSlug/docs/chapterSlug/lessonSlug`) collapse
+      // to the same DojoOS route — the platform addresses lessons by their
+      // FINAL slug, which is unique within the course. Module/chapter
+      // context lives in au_id but does NOT surface in the URL. If DojoOS
+      // ever changes this (e.g. workbook gets its own /app/.../docs/<chap>/<lesson>
+      // route), this branch — and only this branch — must split.
+      const classSlug = segments[segments.length - 1]
+      return `${courseBase}?class=${classSlug}`
     }
-    case 'module':
-      // Modules don't have their own URL — fall back to the course home + module anchor
-      return ctx.pathSlug
-        ? `/app/pathways/${ctx.pathSlug}/courses/${courseSlug}#${rest[0]}`
-        : `/app/courses/${courseSlug}#${rest[0]}`
+
+    default: {
+      // Exhaustive check — TypeScript errors here if a new type is added to
+      // SymbolicRef.type without a matching case above.
+      const _exhaustive: never = ref.type
+      throw new Error(`Unknown symbolic ref type: ${_exhaustive}`)
+    }
   }
 }
 ```

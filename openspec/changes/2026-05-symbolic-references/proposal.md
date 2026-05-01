@@ -2,7 +2,7 @@
 
 **Linear:** [DOJ-3713](https://linear.app/dojo-coding/issue/DOJ-3713)
 **Status:** Proposed (pending governance answer to Slack thread `1777650182.967539`)
-**Owners:** Daniel Bejarano (CEO), Juan C. Guerrero (Security PO)
+**Architecture owners:** Daniel Bejarano + Juan C. Guerrero (per JCG's PDR/ADR taxonomy on 2026-05-01 — they jointly own architecture decisions across DojoOS Labs)
 
 ## What we will build
 
