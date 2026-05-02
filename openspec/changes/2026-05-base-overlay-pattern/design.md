@@ -54,7 +54,7 @@ For dojo-academy, the overlays are:
 - `academy-philosophy` (Dojo voice — "Builder-First, AI-Native", named frameworks like "Builder Mindset" and "Multi-Quading", default tool refs to Claude, momentum endings)
 - `content-standards` (Dojo formula `CONTEXT → CONCEPT → BUILD → SHIP → REFLECT`, "text classes carry the course" load-bearing rule, quality rubric from `deep-guide-challenge-brief.md`)
 
-Overlays MUST NOT contradict Layers 1 and 2. The IDT runtime enforces this — an overlay that produces output violating a Layer 1 invariant is rejected (and the run aborts with a clear error).
+Overlays MUST NOT contradict Layer 1 (the runtime aborts the run with a clear error if they do). Overlays SHOULD NOT contradict Layer 2 — violations log a visible warning naming the overlay's `SKILL.md` path but do not abort, since Layer 2 is defended opinion rather than contract.
 
 ## Overlay protocol
 
@@ -65,7 +65,15 @@ When a IDT command runs, it walks the active plugin context (set by Claude Code 
 1. Look for plugins declared in `<repo>/.claude-plugin/plugin.json`
 2. Within each plugin's `skills/` directory, look for skills whose `SKILL.md` frontmatter declares an `overlay_target` field
 3. Match overlays whose `overlay_target` includes the current command name (e.g. `new-course`, `course-audit`, `slides-preview`, `write-text-class`)
-4. Order them by `overlay_priority` (lower → applied first; voice overlays default to higher priority so they apply LAST, after structural transforms)
+4. Order them by `overlay_priority` (lower → applied first; voice overlays default to higher priority so they apply LAST, after structural transforms). **Ties in `overlay_priority` are broken alphabetically by the overlay's `SKILL.md` path** (case-insensitive, normalized to forward slashes) so ordering is deterministic across operating systems and plugin discovery implementations.
+
+**Default `overlay_priority` values** (use these unless you have a documented reason not to):
+
+| Overlay kind | Default `overlay_priority` | Applied | Examples |
+|---|---|---|---|
+| Structural | `50` | early — reshapes document scaffold | `content-standards` (formula sections, load-bearing rule) |
+| Generic | `75` | middle — annotates/extends without changing voice | locale enrichment, accessibility annotations |
+| Voice / editorial | `100` | late — runs on the structured draft | `academy-philosophy` (Builder-First voice transforms) |
 
 ### Invocation
 
@@ -80,7 +88,10 @@ type OverlayInput = {
 
 type OverlayOutput = {
   draft: object                  // mutated/annotated draft
-  warnings?: string[]            // non-fatal notes (logged)
+  warnings?: string[]            // non-fatal notes — surfaced in the user-facing
+                                 // Claude response (not just internal logs).
+                                 // Use this for "I couldn't find a hero image,
+                                 // skipping that part" style notes.
 }
 
 function applyOverlay(input: OverlayInput): OverlayOutput
@@ -92,10 +103,12 @@ The runtime feeds each overlay the prior overlay's output. Final output is the l
 
 | Situation | Behavior |
 |---|---|
-| Overlay throws an error | IDT logs the error, skips the overlay, continues with prior draft (warning emitted) |
-| Overlay output violates Layer 1 invariant (e.g. mutates `au_id`) | IDT aborts the run with a clear error pointing at the overlay's SKILL.md path |
-| Overlay output violates Layer 2 (e.g. contradicts SAM cohort sizing) | IDT logs a warning but proceeds — Layer 2 is opinion, not contract |
-| No overlays found for a command | IDT emits the base draft directly — voice-neutral, cmi5-compliant |
+| Overlay throws an error | IDT emits a **visible warning in the user-facing Claude response** naming the failed overlay and its `SKILL.md` path (not just an internal log), then continues with the prior draft. Visibility is critical: silent skip would make "no overlays installed" indistinguishable from "overlays installed but broken" — exactly the failure mode the user-facing warning prevents. |
+| Overlay output violates Layer 1 invariant (e.g. mutates `au_id`) | IDT aborts the run with a clear error pointing at the overlay's `SKILL.md` path. |
+| Overlay output violates Layer 2 (e.g. contradicts SAM cohort sizing) | IDT logs a visible warning naming the overlay but proceeds — Layer 2 is defended opinion, not contract. |
+| `<repo>/.claude-plugin/plugin.json` is missing or malformed (JSON parse error, schema validation failure) | IDT emits a visible warning naming the offending plugin path, **skips that plugin's overlays only** (other plugins still discovered), and continues with whatever overlays were found. |
+| A plugin declares `overlay_target` for a command IDT does not implement | IDT silently ignores the registration (no warning — this is a forward-compat case for newer plugin versions). |
+| No overlays found for a command | IDT emits the base draft directly — voice-neutral, cmi5-compliant. No warning needed. |
 
 ## Resolving the two duplicates
 
@@ -129,7 +142,7 @@ The Base + Overlay pattern is the only design that satisfies all four constraint
 **Costs:**
 
 - **One-time implementation** of the overlay-protocol mechanism in IDT (DOJ-3707) — estimated 1 PR, <500 LoC.
-- **Plugin discovery edge cases** — when a user has multiple Dojo-flavored plugins installed (rare), overlay ordering must be deterministic. The `overlay_priority` field handles this; default priorities are documented in `design.md`.
+- **Plugin discovery edge cases** — when a user has multiple Dojo-flavored plugins installed (rare), overlay ordering must be deterministic. The `overlay_priority` field plus the alphabetical-tie-breaker rule in the Discovery section above handle this. Default priorities (50 / 75 / 100 for structural / generic / voice) are codified in the Discovery table.
 - **Overlay protocol stability** — once shipped, the input/output contract is hard to change. Document conservatively.
 
 **Benefits:**
