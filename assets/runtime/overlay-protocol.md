@@ -50,19 +50,21 @@ a valid voice-neutral path).
 Execute these steps in order. Each step lists the failure mode that applies if
 something goes wrong; failure modes are restated in §6 in tabular form.
 
-1. **Locate plugin manifests.** From `<cwd>`, search for
-   `<cwd>/.claude-plugin/plugin.json`. Also follow any nested plugin sources
-   declared by Claude Code (the IDT plugin itself is one such source — its
-   built-in skills are not overlays even though they live in `skills/`; they
-   are skipped because their frontmatter does not declare `overlay_target`).
-   - If `<cwd>/.claude-plugin/plugin.json` does not exist: discovery completes
-     with zero overlays. This is the normal "external consumer with no Dojo
-     overlays installed" path. No warning.
+1. **Locate plugin manifests.** Phase 1 supports exactly one discovery
+   mechanism: search for `<cwd>/.claude-plugin/plugin.json`. The IDT plugin
+   itself is loaded by Claude Code as the active plugin running the command;
+   its own `skills/` directory is NOT scanned for overlays because IDT
+   built-in skills do not declare `overlay_target` in their frontmatter
+   (and overlays are by definition consumer-side, not core).
+   - If `<cwd>/.claude-plugin/plugin.json` does not exist: discovery
+     completes with zero overlays. This is the normal "external consumer
+     with no Dojo overlays installed" path. No warning.
    - If the file exists but cannot be parsed (JSON syntax error or schema
-     violation): emit a visible warning naming the offending plugin path,
-     **skip that plugin's overlays only**, and continue with whatever other
-     plugins were found. Do NOT abort discovery globally — one malformed
-     plugin must not silence the rest of the protocol.
+     validation failure): emit a visible warning naming the offending plugin
+     path and continue with zero overlays. (Multi-plugin nested-source
+     discovery is out of scope for Phase 1 — see §9; in Phase 1 there is
+     only one plugin manifest the runtime walks, so "skip that plugin" and
+     "continue with zero overlays" are equivalent.)
 
 2. **Scan each plugin's skills directory.** For every plugin discovered in
    step 1, list `<plugin-root>/skills/*/SKILL.md`. Parse each SKILL.md's YAML
@@ -130,9 +132,17 @@ function applyOverlay(input: OverlayInput): OverlayOutput
 
 For each overlay in the ordered list, in order:
 
-1. Validate Layer 1 invariants on the **input** `baseDraft` (§5). If they fail
-   here, the failure was caused by a previous overlay — abort with the path of
-   the **previous** overlay.
+1. Validate Layer 1 invariants on the **input** `baseDraft` (§5). On
+   iterations > 0, if they fail here, the failure was caused by the previous
+   overlay — abort with the path of the **previous** overlay. On iteration 0
+   (the first overlay), the pre-loop pass already validated this same draft;
+   if a violation appears here it can only have been introduced by the
+   base-draft producer (the IDT skill itself, e.g. `cmi5-metadata-writer`),
+   so attribute the failure to the running command name (e.g.
+   `"command:new-course / agent:cmi5-metadata-writer"`) rather than to any
+   overlay. In practice iteration 0 should never fail this check — it is a
+   defense-in-depth probe — but the attribution must be unambiguous when it
+   does.
 2. Build an `OverlayInput`:
    - `command` — the running command name.
    - `baseDraft` — the prior step's output (the L1+L2 draft for the first
@@ -298,6 +308,52 @@ When a Layer 2 contradiction is detected: log a visible warning of the form
 `"WARN: Overlay <skill-path> may contradict Layer 2 (<which framework>)"` and
 **continue**. Do NOT abort.
 
+### 5.4 Findings-shaped `baseDraft` (e.g. `course-audit`)
+
+For commands whose `baseDraft` is NOT the cmi5/xAPI artifact itself but a
+report or findings object that REFERS to such an artifact, the snapshot-
+compare procedure in §5.1 is insufficient — there are no Layer 1 field paths
+on the findings object to compare. Audit-style commands (`course-audit` and
+any future audit-shaped command) MUST follow this expanded procedure:
+
+1. The IDT skill MUST pass the underlying source artifact (e.g. the loaded
+   `course.json` for `course-audit`) into the overlay loop as a side-channel
+   alongside `baseDraft`. Conventionally this lives at
+   `context._sourceArtifact` (single underscore prefix to mark it
+   runtime-internal — overlays SHOULD NOT mutate it; the schema does not
+   declare it on `OverlayInput.context` because it is not part of the public
+   contract surface).
+2. The pre-loop snapshot (§5.1 step 1) is taken against
+   `context._sourceArtifact`, NOT against `baseDraft`. The snapshot remains
+   constant for the entire run — overlays add findings, they do NOT touch the
+   source.
+3. After every overlay returns, in addition to comparing `baseDraft` field
+   paths (which by construction will not contain Layer 1 paths for findings-
+   shaped drafts and therefore pass trivially), the runtime ALSO scans the
+   delta between the prior `findings[]` array and the returned `findings[]`
+   array for each finding the overlay added.
+4. For each new finding, the runtime inspects the finding's
+   `recommended_change` / `proposed_diff` / equivalent action-shaped fields
+   (audit findings carry one or more such fields per the audit report
+   format). If the action text or diff references any Layer 1 field path
+   from §4 in a way that proposes mutation (e.g. `set meta.id = ...`,
+   `replace modules[0].au_id`, `delete capstone.id`), this is a Layer 1
+   violation. ABORT with the error template from §5.1 step 4, naming the
+   overlay's `SKILL.md` path AND the offending finding's index in the
+   returned `findings[]` array.
+5. Findings that propose changes to mutable fields (e.g. titles, slugs,
+   description text, `analysis.identified_risks`) are fine — only L1 field
+   path mentions trigger the abort.
+6. On a final post-loop check (§3.2 step 6 equivalent for findings-shaped
+   commands), the runtime MAY re-run the §5.1 snapshot on
+   `context._sourceArtifact` to confirm overlays did not accidentally mutate
+   it through the side-channel. This is defense in depth.
+
+This procedure formalizes the rule stated in
+`skills/course-audit/SKILL.md` Paso 2.5. The course-audit findings shape is
+described informally here; future audit-style commands inherit the same
+mechanism by passing their own source artifact through `context._sourceArtifact`.
+
 ---
 
 ## 6. Failure mode (full table)
@@ -311,7 +367,7 @@ below has a single, deterministic behavior.
 | Overlay output violates Layer 1 invariant (mutates `au_id`, deletes `meta.id`, changes `meta.version_timeline[].type`, etc.) | ABORT the run with a clear error pointing at the overlay's `SKILL.md` path and naming the offending field. Do not write. |
 | Overlay output contradicts Layer 2 (e.g. flattens Bloom's progression, removes `capstone.deliverable`) | Log a visible warning naming the overlay. PROCEED. Layer 2 is defended opinion, not contract. |
 | `<cwd>/.claude-plugin/plugin.json` is missing | Discovery returns zero overlays. No warning. (Voice-neutral output is a valid path.) |
-| `<cwd>/.claude-plugin/plugin.json` is malformed (JSON parse error or schema validation failure) | Emit a visible warning naming the offending plugin path. **Skip that plugin's overlays only** — other plugins still discovered. Continue with whatever overlays were found. |
+| `<cwd>/.claude-plugin/plugin.json` is malformed (JSON parse error or schema validation failure) | Emit a visible warning naming the offending plugin path. **Skip that plugin's overlays only** — other plugins still discovered. Continue with whatever overlays were found. (In Phase 1 the runtime walks exactly one plugin manifest, so this degenerates to "continue with zero overlays". Multi-plugin nested-source discovery is out of scope — see §9.) |
 | A plugin declares `overlay_target` for a command IDT does not implement | Silently ignore the registration. No warning. (Forward-compat for newer plugin versions.) |
 | No overlays found for the running command | Emit the base draft directly. Voice-neutral, cmi5-compliant. No warning. |
 
@@ -376,3 +432,11 @@ Future authoring commands (DOJ-3708 migrations: `write-text-class`,
   ordering at its tier.
 - Overlay versioning. The current contract is implicit-v1. A future version
   bump will land alongside breaking changes to `OverlayInput`/`OverlayOutput`.
+- Multi-plugin nested-source discovery. Phase 1 walks exactly one plugin
+  manifest at `<cwd>/.claude-plugin/plugin.json`. A future enhancement could
+  let one plugin declare additional overlay sources (e.g. an
+  `overlay_sources` array in `plugin.json` listing sibling repos to scan, or
+  a Claude Code-provided list of installed plugins). When this lands, §2.2
+  step 1 grows a sub-procedure for walking each declared source; §6's
+  "skip that plugin's overlays only" behavior becomes load-bearing rather
+  than degenerate. Tracked separately when a concrete need surfaces.

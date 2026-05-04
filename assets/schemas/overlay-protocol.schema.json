@@ -52,7 +52,7 @@
       "properties": {
         "draft": {
           "type": "object",
-          "description": "The transformed draft. The runtime feeds this value into the next overlay's 'baseDraft', or — if this is the last overlay — validates it once more against Layer 1 invariants and writes it. Overlays MUST NOT mutate Layer 1 immutable fields (au_id, activity_type, all stable IDs, semver classification fields, Open Badges 3.0 / W3C VC stable fields). Layer 1 violations abort the run with an error pointing at the offending overlay's SKILL.md path."
+          "description": "The transformed draft. The runtime feeds this value into the next overlay's 'baseDraft', or — if this is the last overlay — validates it once more against Layer 1 invariants and writes it. Overlays MUST NOT mutate Layer 1 immutable fields (au_id, modules[].classes_cmi5.activityType, all stable IDs, semver classification fields, Open Badges 3.0 / W3C VC stable fields — see assets/runtime/overlay-protocol.md §4 for the full canonical list). Layer 1 violations abort the run with an error pointing at the offending overlay's SKILL.md path."
         },
         "warnings": {
           "type": "array",

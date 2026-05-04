@@ -120,24 +120,41 @@ Si no existe tag-taxonomy.md: skip este check (PASS).
 
 Antes de componer el report, leer
 `${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md` y ejecutar el
-procedimiento (Discovery §2 + Invocation §3 + Layer 1 validator §5) sobre el
-**conjunto de findings** producido en el Paso 2 (no sobre el `course.json`):
+procedimiento (Discovery §2 + Invocation §3 + Layer 1 validator §5,
+**específicamente §5.4** porque el `baseDraft` es findings-shaped, NO el
+`course.json`) sobre el conjunto de findings producido en el Paso 2:
 
 - `command` = `"course-audit"`
 - `cwd` = directorio de trabajo desde donde se invocó `/idt:course-audit`
 - `baseDraft` = objeto con forma `{ findings: [...], summary: {...} }` que
-  resume los 8 checks de framework. Un overlay puede AGREGAR findings — p.ej.
+  resume los 8 checks de framework. Cada `finding` tiene al menos los campos
+  `check`, `severity` (`pass`/`warn`/`fail`), `description`, y opcionalmente
+  `recommended_change` (texto libre o JSON Pointer-shaped) que el overlay
+  puede usar para proponer fixes. Un overlay puede AGREGAR findings — p.ej.
   un overlay `content-standards` desde `dojo-academy` puede inyectar findings
   Dojo-específicos como "Módulo 2 carece de text-classes load-bearing,
   contradice la regla 'text classes carry the course'".
+- `context.cwd` y `context.repo` per la convención general.
 - `context.locale` derivado de `course.meta.language` cuando esté presente.
+- `context._sourceArtifact` = el `course.json` cargado en el Paso 1
+  (side-channel del runtime, no parte del contrato público de
+  `OverlayInput.context` — ver overlay-protocol.md §5.4).
 
-Reglas:
+Reglas (§5.4):
 
-- Layer 1 invariants se aplican al `course.json` original — los overlays NO
-  pueden proponer mutar IDs, `au_id`, ni semver classification fields del
-  curso a través del audit. Si un overlay devuelve findings que proponen
-  esto: ABORT con error apuntando al `SKILL.md` ofensor.
+- El validator Layer 1 toma el snapshot contra `context._sourceArtifact`
+  (el `course.json`), NO contra `baseDraft`. El snapshot queda fijo durante
+  todo el run — los overlays agregan findings, no tocan el source.
+- Después de cada overlay, además del snapshot-compare estándar, el runtime
+  escanea cada `finding` nuevo y mira sus campos `recommended_change` /
+  `proposed_diff` / equivalentes. Si el texto del finding referencia
+  cualquier path Layer 1 de §4 con intención de mutar (p.ej.
+  `set meta.id = ...`, `replace modules[0].au_id`, `delete capstone.id`):
+  ABORT con error apuntando al `SKILL.md` del overlay AND al índice del
+  finding ofensor en el array `findings[]`.
+- Findings que proponen cambios sobre campos mutables (titles, slugs,
+  description text, `analysis.identified_risks`, copy de lessons): OK — solo
+  los path L1 disparan el abort.
 - Los findings de overlays se mezclan con los findings base en el report
   (Paso 3) bajo una sub-sección "Overlay findings" por overlay aplicado, con
   el `SKILL.md` path del overlay como header.
