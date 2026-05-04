@@ -2,8 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://dojocodinglabs.github.io/instructional-design-toolkit/overlay-protocol.schema.json",
   "title": "OverlayProtocol",
-  "description": "Contract for the Base + Overlay pattern accepted in DOJ-3706. IDT commands that produce content (new-course, course-audit, slides-preview, and future authoring commands) emit a Layer 1 (cmi5/xAPI invariants) + Layer 2 (pedagogy generic) base draft, then invoke discovered overlay skills sequentially. Each overlay receives an OverlayInput and returns an OverlayOutput. Layer 1 invariants are enforced both BEFORE the first overlay runs and AFTER each overlay returns. Overlays run in ascending overlay_priority order; ties are broken alphabetically by SKILL.md path (case-insensitive, forward-slash-normalized).",
-  "type": "object",
+  "description": "Contract for the Base + Overlay pattern accepted in DOJ-3706. IDT commands that produce content (new-course, course-audit, slides-preview, and future authoring commands) emit a Layer 1 (cmi5/xAPI invariants) + Layer 2 (pedagogy generic) base draft, then invoke discovered overlay skills sequentially. Each overlay receives an OverlayInput and returns an OverlayOutput. Layer 1 invariants are enforced both BEFORE the first overlay runs and AFTER each overlay returns. Overlays run in ascending overlay_priority order; ties are broken alphabetically by SKILL.md path (case-insensitive, forward-slash-normalized). This schema is a definitions-only document — consumers validate concrete payloads against $defs/OverlayInput, $defs/OverlayOutput, or $defs/OverlaySkillFrontmatter as appropriate; there is no single top-level shape because the protocol is composed of multiple distinct payloads.",
   "$defs": {
     "OverlayInput": {
       "type": "object",
@@ -138,8 +137,6 @@
       }
     }
   },
-  "oneOf": [
-    { "$ref": "#/$defs/OverlayInput" },
-    { "$ref": "#/$defs/OverlayOutput" }
-  ]
+  "type": "object",
+  "additionalProperties": true
 }
