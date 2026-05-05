@@ -128,15 +128,18 @@ Before saving, verify:
 
 ## Phase 4: Save
 
-Save to: `content/{track}/{course}/{module}/docs/lesson-{NN}-{slug}.md`
-(or whatever path convention the consumer plugin documents — dojo-academy
-uses `content/courses/{course-slug}/docs/ch-{NN}-{slug}/lesson-{NN}-{slug}.md`).
+Save to the consumer-specific docs path. Dojo-academy convention:
+`content/courses/{course-slug}/docs/ch-{NN}-{slug}/lesson-{NN}-{slug}.md`.
+Other consumers may document a different layout — defer to whatever path
+convention the consumer plugin's CLAUDE.md or content README spells out.
 
-Update the module-overview.md status if this completes the module's docs.
+Update the chapter-level overview status if this completes the chapter's
+docs (or `module-overview.md` if the consumer maps workbook chapters to
+modules — dojo-academy keeps the workbook independent of modules).
 
 ## Overlay invocation (post-base-draft)
 
-After producing the cmi5/xAPI-shaped base draft for this command, follow
+After producing the base draft for this command, follow
 `${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md` to discover and
 apply consumer overlays. The runtime walks `<cwd>/.claude-plugin/plugin.json`,
 finds skills declaring `overlay_target: ["write-lesson"]` in their
@@ -149,7 +152,18 @@ For this command, expect (when a consumer like `dojo-academy` is installed):
 - Voice / editorial overlays (priority ~100) — academy-philosophy:
   Builder-First / AI-Native voice, named frameworks, momentum endings
 
-Layer 1 invariants (`au_id`, `activity_type`, stable IDs) remain immutable —
-overlay outputs that mutate them abort the run. Discovery returns zero
-overlays in a consumer without `.claude-plugin/plugin.json` — the base
-draft is written directly, voice-neutral.
+> **Note on cmi5/xAPI invariants for the legacy workbook track.** The
+> Layer 1 invariant list (`au_id`, `activity_type`, stable IDs,
+> `mastery_score`, etc.) is **aspirational** for workbook lessons.
+> Workbook content predates the cmi5 contract and dojo-academy currently
+> stores it in the `lessons` table without `au_id`. Once a consumer
+> elects to cmi5-map workbook lessons (assigning a stable `au_id` and an
+> `activity_type` IRI in the frontmatter), the same overlay protocol's
+> Layer 1 enforcement applies automatically. Until then, the overlay
+> protocol still runs (discovery, structural / voice transforms) but the
+> Layer 1 validator is a defensive no-op for any field the lesson does
+> not yet carry.
+
+Discovery returns zero overlays in a consumer without
+`.claude-plugin/plugin.json` — the base draft is written directly,
+voice-neutral.

@@ -6,7 +6,7 @@ description: Generate a video script from a video brief, with scene tags and fil
 
 You are generating a complete video script for a class. The argument should
 be a path to an existing video brief file (e.g.,
-`agentic-coding/module-01-the-builder-mindset/classes/video-01-identity-shift.md`
+`content/courses/agentic-coding/module-01-the-builder-mindset/classes/video-01-identity-shift.md`
 in dojo-academy convention).
 
 ## Phase 1: Context Loading

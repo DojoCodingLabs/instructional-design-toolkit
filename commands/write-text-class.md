@@ -14,7 +14,7 @@ supplement them, not the other way around.
   dojo-academy-shaped repo). The runtime resolves paths relative to the cwd
   where the command was invoked.
 
-There is no rigid formula. The content determines the form. Follow the 5
+There is no rigid formula. The content determines the form. Follow the 6
 principles and quality rubric below.
 
 ## Phase 1: Context Loading
@@ -89,7 +89,7 @@ Present the plan to the user and ask:
 
 ## Phase 4: Write Content
 
-Write the complete text class following the 5 principles:
+Write the complete text class following the 6 principles:
 
 1. **Open with substance** — no meta-commentary
 2. **Teach directly** — the text contains the education, Claude is for practice
@@ -107,7 +107,8 @@ what's in the section. Include whatever serves the content:
 - Diagrams for visual concepts (consumer plugins like dojo-academy provide
   branding guidelines via overlays — e.g., dark navy-purple bg, white
   labels, Dojo accent colors, rounded containers; output saved to a
-  `nanobanana-output/` holding folder)
+  consumer-specific holding folder — dojo-academy uses
+  `nanobanana-output/` at the repo root)
 - A Resources section connecting to the wider world — official docs, books,
   tools, source material
 

@@ -127,9 +127,9 @@ There is no rigid formula. Follow the 6 principles:
 - **Diagrams**: For any visual concept, follow the consumer plugin's diagram
   branding (e.g., dojo-academy provides dark navy-purple `#272749` bg,
   white labels, Dojo accent colors via the `academy-philosophy` overlay).
-  Use SHORT labels (1-3 words). Save to a holding folder
-  (`nanobanana-output/` in dojo-academy). Embed with the appropriate
-  relative path.
+  Use SHORT labels (1-3 words). Save to a consumer-specific holding folder
+  (dojo-academy uses `nanobanana-output/` at the repo root). Embed with the
+  appropriate relative path.
 
 ### For Video Classes (COMPLEMENTARY):
 
