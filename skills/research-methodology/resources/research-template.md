@@ -4,7 +4,7 @@ Use this structure for every RESEARCH.md file produced during topic research.
 
 ---
 
-```markdown
+````markdown
 # Research: {Topic Name}
 
 > Researched on {YYYY-MM-DD}. Depth: {shallow|deep}. Sources: {N}.
@@ -103,4 +103,4 @@ Use this structure for every RESEARCH.md file produced during topic research.
 ## Course Design Implications
 
 {Based on this research, what should the course structure look like? Which topics are module-worthy? What's the natural learning progression? What can be skipped?}
-```
+````

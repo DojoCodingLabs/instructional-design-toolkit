@@ -189,6 +189,7 @@ Need to find a verb fast? Here's the alphabetical index:
 | justify | 5 - Decide |
 | label | 1 - Recognize |
 | launch | 3 - Build |
+| launch (original) | 6 - Ship |
 | list | 1 - Recognize |
 | locate | 1 - Recognize |
 | match | 1 - Recognize |

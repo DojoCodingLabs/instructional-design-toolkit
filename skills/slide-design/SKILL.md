@@ -124,9 +124,13 @@ When converting a video script to slides:
 | Using accent on unimportant words | Accent = the word the audience must remember |
 | Paragraphs of text | If it's more than 2 lines, break it into bullets or multiple slides |
 
-## Image Generation with Nano Banana Gemini
+## Image Generation
 
-When a slide concept is best explained visually (processes, flows, comparisons, architecture), use the **Nano Banana Gemini** extension to generate images.
+Consumer plugins may ship an image-generation extension — for example, dojo-academy ships **Nano Banana Gemini**. The workflow below uses the dojo-academy extension as the worked example; consumers without it should substitute their own image pipeline (Option B — direct Gemini API call — works without any extension installed).
+
+### Nano Banana Gemini (dojo-academy reference workflow)
+
+When a slide concept is best explained visually (processes, flows, comparisons, architecture), use the **Nano Banana Gemini** extension (dojo-academy-specific) to generate images.
 
 ### When to use image slides
 
