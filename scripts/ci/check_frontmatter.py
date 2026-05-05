@@ -56,6 +56,7 @@ def main() -> int:
                 errors.append(
                     f'{path}: frontmatter "description" is empty or not a string'
                 )
+                continue
             checked += 1
 
     if errors:

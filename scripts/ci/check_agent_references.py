@@ -29,8 +29,11 @@ def main() -> int:
         agents.add(name)
 
     errors: list[str] = []
+    # Allow hyphen and underscore in agent names — both are valid identifiers
+    # and conflating them produces false negatives if a future agent uses
+    # underscores (e.g. agents/translation_reviewer.md).
     ref_pattern = re.compile(
-        r'\$\{CLAUDE_PLUGIN_ROOT\}/agents/([a-z][a-z0-9-]+)\.md'
+        r'\$\{CLAUDE_PLUGIN_ROOT\}/agents/([a-z][a-z0-9_-]+)\.md'
     )
 
     for pattern in ['skills/*/SKILL.md', 'commands/*.md']:
