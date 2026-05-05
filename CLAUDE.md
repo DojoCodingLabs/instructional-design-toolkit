@@ -219,11 +219,16 @@ DOJ-3708 / DOJ-3709 migrated `write-*` commands).
 
 IDT generates **symbolic cross-references** by default. Course content
 authored through IDT commands (`new-course`, `write-text-class`,
-`write-lesson`, `write-module`, etc.) MUST emit symbolic refs in cross-link
-positions — never hardcoded URLs, never relative `.md` paths.
+`write-lesson`, `write-module`, etc.) SHOULD emit symbolic refs in cross-link
+positions in preference to hardcoded URLs or relative `.md` paths.
 
 The full convention is documented in
-`openspec/changes/2026-05-symbolic-references/` (DOJ-3713).
+`openspec/changes/2026-05-symbolic-references/` (DOJ-3713). **Status:
+Proposed.** Treat the convention as **advisory** until the openspec is
+ratified — agents SHOULD prefer symbolic refs in new content but MUST NOT
+rewrite existing hardcoded URLs to enforce the convention while it is still
+under proposal. Once DOJ-3713 ships, `SHOULD` upgrades to `MUST` and this
+note is removed.
 
 ### Why
 
@@ -264,6 +269,23 @@ Supported type prefixes:
 
 The slug-path uses the canonical `au_id` format — the same identifier xAPI
 relies on. Two systems share one source of truth.
+
+#### `lesson:` disambiguation
+
+The `lesson:` type prefix admits two slug-path shapes — standard module-
+nested lessons and workbook-style lessons under a `docs` subtree. The
+disambiguation rule both `parseSymbolicRef` implementations and human readers
+follow: **a `lesson:` ref is a workbook lesson iff segment 2 of the
+slug-path is the literal token `docs`**. Otherwise it is a standard
+module-nested lesson. Examples:
+
+- `[lesson:dojo-mindset/module-01-the-last-skill/text-01-the-last-skill]` —
+  segment 2 is `module-01-the-last-skill`, not `docs` → standard lesson.
+- `[lesson:vibe-coding-blueprint/docs/ch-01-mindset/lesson-01-vibe-coder]` —
+  segment 2 is `docs` → workbook lesson.
+
+Resolvers MUST implement this rule consistently across platforms.
+Authoritative reference: `openspec/changes/2026-05-symbolic-references/design.md`.
 
 ### Resolver contract
 
@@ -416,8 +438,12 @@ the user has reinforced across hundreds of sessions.
 
 ### Branches and PRs
 
-- Branch naming: `andres/<issue-id-lowercase>-<short-description>` per
-  `linear-setup.json`.
+- Branch naming: `<username>/<issue-id-lowercase>-<short-description>` per
+  the `git.branchPattern` field in `linear-setup.json`. The `<username>`
+  segment is the human or agent contributor's GitHub handle. The pattern in
+  `linear-setup.json` currently hardcodes `andres/...` because Andrés is the
+  primary contributor; future contributors should update that field (or
+  override it locally) rather than reuse the literal `andres/` prefix.
 - Always rebase on `main` before pushing if conflicts appear; never
   force-push to `main`; never use `--no-verify` on commits / pushes.
 - Squash merges only (`gh pr merge <n> --squash --delete-branch`).
@@ -428,10 +454,15 @@ the user has reinforced across hundreds of sessions.
 
 ### Greptile
 
-- Every PR gets `@greptile review`. Wait for the review (~2-5 minutes).
-- Greptile must hit **5/5 functional** before merge. Address every finding,
-  push fixes, then merge — no waiting for re-review cycles after fixes are
-  pushed.
+- Every PR gets `@greptile review`. Wait for the first review (~2-5 minutes).
+- The bar is **5/5 functional on the first review pass**. If Greptile lands
+  at 5/5 immediately, merge. If it lands below 5/5, the goal is to *land at
+  5/5 next time* — address every finding from the first pass, push the
+  fixes, and merge. **Do not block waiting for a second Greptile cycle to
+  confirm the score** (per `feedback_dont_wait_for_greptile_rereviews.md`).
+  The discipline is "fix every finding"; the score gate is "5/5 at first
+  pass". After fixes are pushed, Greptile may re-score asynchronously —
+  that re-score is informational, not blocking.
 - Never ask the user "should we skip Greptile?" — the answer is always no.
 
 ### CI
@@ -481,6 +512,7 @@ repo:
 | DOJ-3707 | Overlay protocol implementation (`assets/runtime/overlay-protocol.md`, schemas, three Phase-1 wired skills) | Shipped |
 | DOJ-3708 | Migrate audit / review / infra commands from dojo-academy → IDT | Shipped (PR 1/2/3) |
 | DOJ-3709 | Migrate agents and generic skills from dojo-academy → IDT | Shipped (PR-A: 12 agents, PR-B: 6 generic skills via DOJ-3829) |
+| DOJ-3829 | Migrate 6 generic skills from dojo-academy → IDT (PR-B of DOJ-3709) | Shipped |
 | DOJ-3710 | Convert dojo-academy `academy-philosophy` + `content-standards` to overlays | Shipped (in dojo-academy) |
 | DOJ-3711 | Remove duplicate `audit-course` / `plan-course` from dojo-academy | Shipped (in dojo-academy) |
 | DOJ-3712 | This file (CLAUDE.md update) + sibling dojo-academy CLAUDE.md update | This PR |
