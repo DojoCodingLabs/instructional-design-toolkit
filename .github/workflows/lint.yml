@@ -1,0 +1,174 @@
+# IDT plugin lint — pre-flight checks before Greptile review.
+#
+# Three checks, each as a distinct step so failures are localized:
+#   1. JSON schema files parse as valid JSON.
+#   2. YAML frontmatter on commands / skills / agents parses and declares the
+#      minimum required field (`description`).
+#   3. Agent references inside skills/commands using `${CLAUDE_PLUGIN_ROOT}/
+#      agents/<name>.md` resolve to a file that actually ships in this repo.
+#
+# Designed to catch the bug class Greptile flagged across the DOJ-3708 chain
+# (DOJ-3771/3772/3773): typo'd agent names, missing frontmatter fields,
+# malformed schema syntax. Heuristic by design — Step 3 deliberately scopes
+# to IDT-internal references (`${CLAUDE_PLUGIN_ROOT}/agents/...`) and ignores
+# bare `agents/<name>.md` mentions, since those are consumer-shipped overlays
+# (e.g. the translation pipeline references `agents/translator.md` from the
+# consumer repo, not from IDT).
+#
+# Companion to DOJ-3774. Closes the highest-ROI follow-up identified by the
+# DOJ-3708 migration chain.
+#
+# Security note: this workflow does not consume any untrusted input from the
+# GitHub event payload (issue/PR/commit metadata). All Python heredocs operate
+# on repo files only; no `${{ github.event.* }}` is interpolated into shell.
+
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: JSON schema syntax validation
+        run: |
+          python3 - <<'PY'
+          import glob
+          import json
+          import sys
+
+          errors = []
+          schemas = sorted(glob.glob('assets/schemas/**/*.schema.json', recursive=True))
+          for path in schemas:
+              try:
+                  with open(path) as f:
+                      json.load(f)
+              except json.JSONDecodeError as e:
+                  errors.append(f'{path}: {e}')
+
+          if errors:
+              print('JSON schema syntax errors:')
+              for e in errors:
+                  print(f'  {e}')
+              sys.exit(1)
+
+          print(f'JSON schemas: {len(schemas)} file(s) valid')
+          PY
+
+      - name: YAML frontmatter linting
+        run: |
+          python3 - <<'PY'
+          import glob
+          import re
+          import sys
+
+          import yaml
+
+          errors = []
+          patterns = ['commands/*.md', 'skills/*/SKILL.md', 'agents/*.md']
+          checked = 0
+          skipped = 0
+
+          for pattern in patterns:
+              for path in sorted(glob.glob(pattern)):
+                  with open(path) as f:
+                      content = f.read()
+                  match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+                  if not match:
+                      # Files without frontmatter are allowed (e.g. supporting
+                      # docs like commands/_translation-pipeline.md). Skip.
+                      skipped += 1
+                      continue
+                  try:
+                      fm = yaml.safe_load(match.group(1))
+                  except yaml.YAMLError as e:
+                      errors.append(f'{path}: YAML parse error - {e}')
+                      continue
+                  if not isinstance(fm, dict):
+                      errors.append(f'{path}: frontmatter is not a mapping')
+                      continue
+                  if 'description' not in fm:
+                      errors.append(
+                          f'{path}: missing required frontmatter field "description"'
+                      )
+                      continue
+                  desc = fm.get('description')
+                  if not isinstance(desc, str) or not desc.strip():
+                      errors.append(
+                          f'{path}: frontmatter "description" is empty or not a string'
+                      )
+                  checked += 1
+
+          if errors:
+              print('Frontmatter linting errors:')
+              for e in errors:
+                  print(f'  {e}')
+              sys.exit(1)
+
+          print(
+              f'Frontmatter: {checked} file(s) valid, {skipped} skipped (no frontmatter)'
+          )
+          PY
+
+      - name: Agent reference resolution
+        run: |
+          python3 - <<'PY'
+          import glob
+          import re
+          import sys
+
+          # Index every agent that ships in this repo.
+          agents = set()
+          for path in glob.glob('agents/*.md'):
+              name = path.removeprefix('agents/').removesuffix('.md')
+              agents.add(name)
+
+          # Scan skills + commands for IDT-internal agent references.
+          # Pattern: ${CLAUDE_PLUGIN_ROOT}/agents/<name>.md — these point at
+          # files that MUST ship in this repo. Bare `agents/<name>.md`
+          # references are consumer-relative (e.g. the translation pipeline
+          # references consumer-shipped agents like `agents/translator.md`)
+          # and are deliberately not checked here.
+          errors = []
+          ref_pattern = re.compile(
+              r'\$\{CLAUDE_PLUGIN_ROOT\}/agents/([a-z][a-z0-9-]+)\.md'
+          )
+          for pattern in ['skills/*/SKILL.md', 'commands/*.md']:
+              for path in sorted(glob.glob(pattern)):
+                  with open(path) as f:
+                      content = f.read()
+                  for match in ref_pattern.finditer(content):
+                      agent_ref = match.group(1)
+                      if agent_ref not in agents:
+                          line_num = content[: match.start()].count('\n') + 1
+                          errors.append(
+                              f'{path}:{line_num}: references '
+                              f'${{CLAUDE_PLUGIN_ROOT}}/agents/{agent_ref}.md '
+                              f'but no such agent file exists in agents/'
+                          )
+
+          if errors:
+              print('Agent reference errors:')
+              for e in errors:
+                  print(f'  {e}')
+              sys.exit(1)
+
+          print(
+              f'Agent references: {len(agents)} agent(s) indexed, '
+              f'all IDT-internal references resolve'
+          )
+          PY
