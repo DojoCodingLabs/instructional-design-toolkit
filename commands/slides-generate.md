@@ -216,6 +216,21 @@ Create a self-contained `.html` file by:
   </div>
 </section>
 
+<!-- Content + Image (PREFERRED when section has both text and a visual) -->
+<section class="content-image">
+  <h1>{N}) {Section Title}</h1>
+  <div class="content-text">
+    <p class="big-idea">BIG IDEA: {THESIS IN 3-6 WORDS}</p>
+    <ul>
+      <li>{Bullet point}</li>
+      <li>{Bullet with <strong>accent</strong>}</li>
+    </ul>
+  </div>
+  <div class="content-visual">
+    <img src="data:image/png;base64,{IMAGE_BASE64}" alt="{Description}">
+  </div>
+</section>
+
 <!-- Transition -->
 <section class="transition">
   <h1>{Short phrase}</h1>

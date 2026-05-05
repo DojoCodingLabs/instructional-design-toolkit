@@ -97,6 +97,12 @@ Score the text class on the 6-question rubric (1-5 each):
 5. Does it connect the reader to the wider world — docs, books, tools, specs?
 6. Would you genuinely recommend this to a friend learning this topic?
 
+**Aggregation rule (rubric → quality score)**: the 1-5 per-question rubric
+above feeds the 1-10 quality scores in Phase 3. Average the six rubric
+scores (max 5.0) and double the result to get a 1-10 contribution. The Phase
+3 verdict thresholds (≥ 7 PASS, 5-6 NEEDS WORK, ≤ 4 FAIL) operate on the
+1-10 scale, never on the raw 1-5 rubric.
+
 Also verify the 6 principles:
 - Opens with substance (not meta-commentary)
 - Teaches directly (text contains the education, Claude is for practice)
@@ -215,6 +221,7 @@ Output a structured review report:
 | Action | X/10 | [brief note] |
 | Ship | X/10 | [brief note] |
 | AI Integration | X/10 | [brief note] |
+| AI Fluency | X/10 | [brief note] |
 
 ## Issues Found
 
