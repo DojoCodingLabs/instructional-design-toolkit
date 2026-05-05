@@ -56,8 +56,8 @@ Before fetching anything, answer:
 ### Step 2: Find Official Documentation
 
 Start with the highest-trust sources:
-- Use Context7 MCP tools (`mcp__plugin_context7_context7__resolve-library-id` then `mcp__plugin_context7_context7__query-docs`) to fetch library documentation
-- Use WebFetch for official documentation pages, getting-started guides, and API references
+- **If the Context7 MCP plugin is installed in the consumer environment**, use Context7 MCP tools (`mcp__plugin_context7_context7__resolve-library-id` then `mcp__plugin_context7_context7__query-docs`) to fetch library documentation — this is the fastest path to structured docs for libraries Context7 indexes. **If Context7 is not installed**, fall back to WebFetch on the official docs URL directly; do not abort the research run.
+- Use WebFetch for official documentation pages, getting-started guides, and API references (this works in any consumer, with or without Context7)
 - Use WebSearch to locate official docs if the URL isn't obvious
 
 Capture: URL, last updated date, version documented.

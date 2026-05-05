@@ -148,6 +148,11 @@ Include estimated completion time.}
 {Address a common stumbling point}
 </details>
 
+<details>
+<summary>Hint 3</summary>
+{More direct guidance — the closest you'll get to the answer}
+</details>
+
 ## Submission
 
 {Submission type + where to share}

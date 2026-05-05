@@ -62,7 +62,7 @@ The dojo-academy 4 pillars:
 
 ### Check 4: Text Class Quality Rubric
 
-Score the text class on 5 questions (1-5 each):
+Score the text class on 6 questions (1-5 each):
 
 | Question | Score | Notes |
 |----------|-------|-------|
