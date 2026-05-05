@@ -26,7 +26,7 @@ Identify what needs to be translated:
 1. Read the **course overview**: `content/courses/{course-slug}/course-overview.md`
 2. List **all content files** in the course (or module if specified):
    ```
-   Glob: content/courses/{course-slug}/**/**.md
+   Glob: content/courses/{course-slug}/**/*.md
    ```
 3. Check for **existing translations** at the consumer's locale path
    (dojo-academy uses `es/`):
@@ -174,35 +174,53 @@ adjustments) **conflict** with that mandate — they would push the
 translation toward an editorial register the source author never chose.
 
 For this command, follow
-`${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md` discovery, but
-apply only overlays whose `overlay_kind` (or equivalent declared role)
-indicates **terminology / glossary** scope. Voice and structural overlays
-should be **skipped** for translation runs and surface a single notice in
-the run summary that they were detected but bypassed for this command.
+`${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md` discovery,
+but apply only overlays whose `overlay_priority` falls in the
+**generic** tier (`< 100`). Use the priority tiers documented on the
+`overlay_priority` field in
+`${CLAUDE_PLUGIN_ROOT}/assets/schemas/overlay-protocol.schema.json` —
+`structural=50` (reshapes scaffold early), `generic=75` (annotations
+and locale enrichment such as terminology/glossary work), `voice=100`
+(editorial transforms run last). For translation runs:
 
-For this command, expect (when a consumer like `dojo-academy` is
-installed):
-- **Apply** — terminology overlays (priority varies): Do Not Translate
-  lists, framework name conventions (English first use + locale
-  parenthetical), file label translations (e.g. `Correct→Correcta`,
-  `Questions→Preguntas`), accent enforcement, neutral-LATAM "tú"
-  conjugation rules, verb-form glossary self-checks
-  (`despliegue|desplegar|desplegado|desplegando`)
-- **Skip** — voice / structural authoring overlays: Builder-First
-  rewrites, named-framework reshaping, content-formula imposition. The
-  source author's choices in those dimensions are translated, not
-  re-authored.
+- **Apply** — overlays with `overlay_priority < 100` (generic tier and
+  below). These cover terminology / glossary scope: Do Not Translate
+  lists, framework name conventions (source-language first use +
+  target-locale parenthetical), file label translations (e.g.
+  `Correct→Correcta`, `Questions→Preguntas`), accent enforcement,
+  neutral-LATAM "tú" conjugation rules, verb-form glossary self-checks
+  (`despliegue|desplegar|desplegado|desplegando`). Note: structural
+  overlays (priority `~50`) typically reshape scaffolds — for a
+  translation run they are conventionally configured as no-ops, but
+  the priority-tier filter intentionally lets them through so that
+  consumers who ship a translation-aware structural overlay (e.g. one
+  that adjusts image paths for locale-tree depth) can still apply.
+- **Skip** — overlays with `overlay_priority >= 100` (voice tier).
+  These cover authoring transforms: Builder-First rewrites,
+  named-framework reshaping, content-formula imposition. The source
+  author's choices in those dimensions are translated, not
+  re-authored. Skipped overlays surface a single notice in the run
+  summary listing each overlay's `SKILL.md` path so the user can
+  confirm the bypass.
+
+This priority-threshold rule keys on the existing `overlay_priority`
+field declared in `OverlaySkillFrontmatter`. Consumers that ship voice
+overlays at the conventional `100` priority require no schema changes
+or extra frontmatter to be correctly bypassed here. A future iteration
+of the overlay protocol may introduce an explicit `overlay_kind`
+discriminator; until that lands in the schema, the priority threshold
+is the contract this command relies on.
 
 Layer 1 invariants (`au_id`, `activity_type`, stable IDs from the cmi5
 contract) remain immutable — translations are locale variants of the
-same Activity Unit. Any overlay output that mutates them aborts the run
-with a clear error pointing at the offending `SKILL.md` path. Layer 2
-contradictions (Bloom's flatness, missing ship milestone) are inherited
-from the source, not introduced by translation, and therefore should not
-trigger overlay warnings on this command. Discovery returns zero
-overlays in a consumer without `.claude-plugin/plugin.json` — the base
-translation runs directly with the consumer's translator agent rules as
-the sole guide.
+same Activity Unit. Any overlay output that mutates them aborts the
+run with a clear error pointing at the offending `SKILL.md` path.
+Layer 2 contradictions (Bloom's flatness, missing ship milestone) are
+inherited from the source, not introduced by translation, and
+therefore should not trigger overlay warnings on this command.
+Discovery returns zero overlays in a consumer without
+`.claude-plugin/plugin.json` — the base translation runs directly with
+the consumer's translator agent rules as the sole guide.
 
 ## Cross-PR dependencies
 
