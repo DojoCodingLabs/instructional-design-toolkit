@@ -370,6 +370,47 @@ below has a single, deterministic behavior.
 | `<cwd>/.claude-plugin/plugin.json` is malformed (JSON parse error or schema validation failure) | Emit a visible warning naming the offending plugin path. **Skip that plugin's overlays only** — other plugins still discovered. Continue with whatever overlays were found. (In Phase 1 the runtime walks exactly one plugin manifest, so this degenerates to "continue with zero overlays". Multi-plugin nested-source discovery is out of scope — see §9.) |
 | A plugin declares `overlay_target` for a command IDT does not implement | Silently ignore the registration. No warning. (Forward-compat for newer plugin versions.) |
 | No overlays found for the running command | Emit the base draft directly. Voice-neutral, cmi5-compliant. No warning. |
+| `${CLAUDE_PLUGIN_ROOT}` is empty or unresolved (runtime not running inside a Claude Code plugin context) | Emit a **visible warning in the user-facing Claude response** naming the failed token resolution and the path it was meant to expand to (e.g. `${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md`). Skip overlay invocation gracefully — emit the base draft as if §2 Discovery had returned zero overlays. Do NOT crash. Do NOT silently no-op (silence would erase the distinction between "no overlays installed" and "overlay subsystem unreachable"). See §6.1 for the runtime expectation that produces this case. |
+
+### 6.1 Plugin runtime expectations (`${CLAUDE_PLUGIN_ROOT}`)
+
+The runtime relies on Claude Code's plugin substitution to resolve
+`${CLAUDE_PLUGIN_ROOT}` to the absolute filesystem path of the IDT plugin
+root before any skill or command reads files. Every IDT skill and command
+references this token to load shared assets — for example, a SKILL.md may
+read `${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md` (this file)
+or dispatch `${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md`.
+
+This is a contract with the host runtime, not something IDT can assert
+internally. Two cases warrant explicit mention:
+
+1. **In-plugin context (the normal case).** `${CLAUDE_PLUGIN_ROOT}` resolves
+   to e.g. `/Users/<user>/.claude/plugins/instructional-design-toolkit` (or
+   the equivalent in the consumer's plugin install path). Every reference
+   resolves; the runtime executes as documented above.
+
+2. **Out-of-plugin / direct-CLI invocation.** A user running `claude` from
+   inside a checkout of this repo (or any context where the plugin
+   substitution layer is not active) sees `${CLAUDE_PLUGIN_ROOT}` as a
+   literal string that does not expand. Reads against `${CLAUDE_PLUGIN_ROOT}/...`
+   paths fail with "no such file or directory" because no such filesystem
+   path exists. When this happens, the IDT skill MUST:
+   - Detect the failure to resolve the token (the read of
+     `${CLAUDE_PLUGIN_ROOT}/assets/runtime/overlay-protocol.md` returns an
+     error, or the token appears verbatim in a path string).
+   - Emit a **visible warning** in the user-facing Claude response naming
+     the token and the path it was supposed to expand to.
+   - Skip overlay invocation gracefully and emit the base draft (the
+     §3.3 "empty overlay list" path, with the warning attached).
+   - NOT crash, NOT silently produce a base draft as if no overlays had
+     been requested — that would erase the distinction between
+     "no overlays installed" and "overlay subsystem unreachable".
+
+This contract is verified by integration tests planned for DOJ-3710 (Phase 2):
+overlay invocation must work under both (1) in-plugin context AND (2) direct
+`claude` CLI invocation, with case (2) producing the graceful-skip-with-
+warning behavior documented above. Until DOJ-3710 lands, this section
+documents the expected behavior so authoring skills can be written defensively.
 
 ---
 
