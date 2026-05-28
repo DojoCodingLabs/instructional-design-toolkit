@@ -8,8 +8,8 @@
     "branchPattern": "andres/{issue-id-lowercase}-{short-description}"
   },
   "defaults": {
-    "greptileReview": true,
-    "greptileMinConfidence": 3,
+    "dojoCodeReviewer": true,
+    "dojoCodeReviewerMinConfidence": 3,
     "squashMerge": true,
     "slackNotify": true
   },
