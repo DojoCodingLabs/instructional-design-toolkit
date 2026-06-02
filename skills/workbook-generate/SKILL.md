@@ -271,8 +271,10 @@ Each composer returns a **MANIFEST** (`{ moduleId, title, steps[], components_us
 plus a **FRAGMENT**: one `<div class="wb-module" id="mod-{N}">` of namespaced
 `.wb-step`s and kit components — **not** a full document. Rules:
 
-- **ID namespacing:** every `id` / `aria-controls` / `aria-labelledby` is
-  prefixed `m{N}-` (module index) so fragments concatenate without collisions.
+- **ID & attribute namespacing:** every `id` / `aria-controls` /
+  `aria-labelledby` / label `for` / form-control `name` is prefixed `m{N}-`
+  (module index) so fragments concatenate without id collisions, broken label
+  associations, or cross-module radio-group bleed.
 - **Fragment only:** no `<html>/<head>/<style>/<script>`, no `.wb-progress`, no
   `.wb-nav`, **no `.wb-module__nav` footer**. Those are global and the
   orchestrator owns them — the footer is added at assembly so the "Module N of M"

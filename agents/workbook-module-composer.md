@@ -92,10 +92,12 @@ data the orchestrator parses — no preamble.
 
 ## Fragment rules (non-negotiable — the assembler depends on them)
 
-- **ID namespacing:** every `id`, `aria-controls`, and `aria-labelledby` you
-  emit is prefixed `m{N}-` (e.g. `m3-acc-1-panel`). This guarantees global
-  uniqueness when fragments are concatenated. The module wrapper id is
-  `mod-{N}`.
+- **ID & attribute namespacing:** every `id`, `aria-controls`,
+  `aria-labelledby`, label `for`, and form-control `name` (radio/checkbox
+  groups) you emit is prefixed `m{N}-` (e.g. `m3-acc-1-panel`,
+  `name="m3-quiz-1"`). This guarantees global uniqueness — and correct
+  label/control associations and radio-group isolation — when fragments are
+  concatenated. The module wrapper id is `mod-{N}`.
 - **Fragment only — no global chrome.** Emit the single `.wb-module` div and its
   `.wb-step` sections. Do **NOT** emit `<html>`, `<head>`, `<style>`,
   `<script>`, the `.wb-progress` bar, the `.wb-nav` table of contents, or the
