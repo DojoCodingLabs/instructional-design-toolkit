@@ -32,7 +32,7 @@
   --wb-footer: #a9a9b3;
   --wb-accent: #2b2b2b;      /* monochrome under graceful-degrade; brand overrides */
   --wb-accent-2: #6b6b6b;
-  --wb-accent-soft: rgba(43,43,43,0.08);
+  --wb-accent-soft: color-mix(in srgb, var(--wb-accent) 8%, transparent);
   --wb-good: #1f7a4d;
   --wb-bad: #b04a3f;
   --wb-line: #e4e2db;
@@ -535,7 +535,9 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
     if (nextBtn) nextBtn.addEventListener("click", function () { show(current + 1); });
     if (prevBtn) prevBtn.addEventListener("click", function () { show(current - 1); });
     document.addEventListener("keydown", function (e) {
-      if (e.target.matches("textarea, input")) return;
+      // Don't hijack keys when focus is on an interactive control — let Enter/arrows
+      // activate the accordion/tab/reveal/button/link natively (avoids double-advance).
+      if (e.target.closest("textarea, input, select, button, a, [role='tab'], [role='button'], [contenteditable]")) return;
       if (e.key === "ArrowRight" || e.key === "Enter") { show(current + 1); }
       else if (e.key === "ArrowLeft") { show(current - 1); }
     });
@@ -561,7 +563,9 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
     // TOC: a module link switches the chunk; a step link switches its chunk then scrolls to it.
     navLinks.forEach(function (a) {
       a.addEventListener("click", function (e) {
-        var target = document.querySelector(a.getAttribute("href"));
+        var href = a.getAttribute("href");
+        if (!href || href.charAt(0) !== "#") return; // only internal hash links
+        var target = document.getElementById(href.slice(1));
         if (!target) return;
         e.preventDefault();
         var isModule = target.classList.contains("wb-module");
@@ -661,7 +665,7 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
   document.querySelectorAll("[data-export]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var payload = btn.parentElement.querySelector(".wb-export__payload");
-      if (payload) copyToClipboard(payload.innerText, btn, "Copied ✓");
+      if (payload) copyToClipboard(payload.textContent, btn, "Copied ✓");
     });
   });
 
