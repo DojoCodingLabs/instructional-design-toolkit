@@ -98,9 +98,16 @@ Interactivity must either teach by being *felt* (knobs, diagrams, reveals) or
 *close the loop* (export). Never add a widget that captures an answer and does
 nothing with it — V1 persists nothing.
 
-Only use a component the resolved spec's `workbooks.components` enables (or the
-neutral defaults when that key is absent). Interactivity must earn its place —
-prefer one well-chosen block per concept over decorative ones.
+These mappings are **heuristics, not a lookup table** — pick the representation
+that best illuminates each concept and **vary across the course** (don't render
+the same component for every section). Honour the consumer spec's
+`workbooks.components` toggles, but the kit is a **floor, not a ceiling**: when a
+concept needs a visualization the kit lacks, **author it directly** (inline
+SVG/CSS within the design tokens + a11y contract). Reserve the "compose from the
+tested kit" discipline for fragile *stateful JS* — static/SVG/CSS creativity is
+encouraged. Interactivity must earn its place; prefer one well-chosen block per
+concept over decorative ones. See the skill's "Invariant frame vs. creative
+payload" and "The kit is a floor, not a ceiling".
 
 ## Phase 4 — Generate the standalone HTML
 
@@ -129,6 +136,23 @@ prefer one well-chosen block per concept over decorative ones.
    state conveyed by text + icon (not color alone).
 7. **State is in-memory only** — wire the completion event as a fire-only hook;
    do NOT add `localStorage`, `postMessage`, or any persistence.
+
+## Phase 4.5 — Variety / fit self-check (before saving)
+
+Before writing the file, review the draft against monotony — the goal is a
+workbook tailored to *this* course, not a template fill:
+
+- Would **two different courses** produce visibly different workbooks, or the
+  same shell with the text swapped? If the latter, rework the weakest sections.
+- Did you **default to the same component** for every section of a given type
+  (e.g. every comparison rendered identically)? Vary the representation.
+- Is each visualization the **best for its concept**, or just the easy mapping?
+  If a concept would be clearer as a bespoke inline-SVG figure the kit doesn't
+  have, author it (within the design tokens + a11y contract).
+- Did interactivity **earn its place**, or is it decorative?
+
+This is a quality pass on the *creative payload* only — the invariant frame
+(brand, accessibility, navigation, standalone rules) stays exactly as generated.
 
 ## Phase 5 — Save & report
 
