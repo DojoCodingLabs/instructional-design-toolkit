@@ -97,14 +97,21 @@ preferences do.
 |---|---|
 | **flow diagram** | A process / pipeline as clickable, ordered steps. |
 | **comparison diagram** | Two or more options laid out spatially for contrast. |
-| **chart** | A simple bar / line chart for a small dataset. Hand-rendered SVG, no library. |
+| **chart** | A small bar / line chart. Hand-rendered SVG with **precomputed coordinates** (no runtime scale fn) and the **single salient datum recolored** to the accent (`.is-peak`) while the rest stay neutral — the highlight is itself a teaching move. No library. |
 | **annotated figure** | An SVG figure with callout labels. |
 
 ### Annotated code
 
 | Component | Purpose |
 |---|---|
-| **code block** | Syntax-styled code with a copy button and optional margin annotations / line callouts. High value for a coding curriculum. |
+| **code block** | Syntax-styled code with a copy button (with a `file://` clipboard fallback) and optional margin annotations / line callouts. High value for a coding curriculum. |
+| **code diff** | A before -> after variant of the code block: removed lines (`.diff-del`, struck through) and added lines (`.diff-add`) banded inline. Teaches *the change*, not just the result — the core move of teaching code. |
+
+### Parametric knob (the reliable "felt" interaction)
+
+| Component | Purpose |
+|---|---|
+| **knob** | A slider whose value writes a CSS custom property (`--knob`) that a preview element consumes and a readout mirrors. Lets a learner *drag and watch the effect* — the felt interactivity of the reference site's simulations, delivered through a fixed, tested component rather than bespoke per-concept JS. In-memory only. |
 
 ### Course navigation
 
@@ -117,11 +124,28 @@ preferences do.
 
 | Component | Purpose |
 |---|---|
-| **parametric demo** | A slider/toggle that live-updates a value or preview, to teach a tunable relationship. |
+| **live simulation** | A measured simulation — state array -> recompute -> diff-vs-previous -> re-render, with a readout that prints the lesson's key metric live (e.g. "25% of keys moved"). The most powerful pattern in the reference, but the most expensive to generate/QA — reach for the **knob** first. |
 | **state visualizer** | A small interactive state machine / structure (e.g. add/remove nodes) for a concept best understood by manipulation. |
 
 These are the most fragile to generate and the most expensive to QA. Prefer a
 baseline or disclosure component unless manipulation is the point of the lesson.
+
+## Semantic color language
+
+Color carries consistent meaning across every component (and is always paired
+with text or an icon — never color alone, per the accessibility contract):
+
+- **accent** (`--wb-accent`) = the *current / focal / interactive* thing — the
+  active step, a selected tab, the salient datum on a chart, an interactive
+  control, a key term.
+- **good** (`--wb-good`) = *success / correct / done* — a right quiz answer, a
+  completed step, the favourable side of a comparison, added lines in a diff.
+- **bad** (`--wb-bad`) = *error / incorrect / removed* — a wrong answer, the
+  weak side of a comparison, removed lines in a diff.
+
+This mirrors the reference site's clay / olive / rust roles. Consumers retheme
+the hexes via the spec's `design.palette`; the *roles* stay fixed so the visual
+grammar is stable across a course (stable grammar = lower cognitive load).
 
 ## Content-shape -> component mapping (the pedagogical core)
 
@@ -136,7 +160,12 @@ There is no rigid formula; the content determines the form. Heuristics:
   whether the table contrasts options, shows variants, or holds numbers).
 - **An ordered "step 1 / 2 / 3" list or a described process** -> a **flow
   diagram** or a stepper.
-- **A fenced code block** -> an **annotated code block**.
+- **A fenced code block** -> an **annotated code block**; if it shows an edit
+  (old vs new), use the **code diff** variant.
+- **A small dataset with a standout value** -> a **chart**, recoloring the peak.
+- **A tunable relationship** ("as X grows, Y...") -> a **knob** so the learner
+  drags X and watches Y; reach for a **live simulation** only if measuring the
+  outcome is the lesson.
 - **A quotable / load-bearing sentence** -> a **statement / callout**.
 - **A digression or optional depth** -> an **accordion**.
 - **Parallel alternatives** (languages, approaches) -> **tabs**.

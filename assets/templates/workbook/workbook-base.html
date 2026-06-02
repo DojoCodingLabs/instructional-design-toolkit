@@ -245,6 +245,27 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
 .wb-recap h2 { font-size: 1.9rem; letter-spacing: var(--wb-h-tracking); }
 .wb-recap[hidden] { display: none; }
 
+/* ---- Component: inline code diff (before -> after) ---- */
+.wb-code pre .diff-add { display: block; background: color-mix(in srgb, var(--wb-good) 22%, transparent); }
+.wb-code pre .diff-del { display: block; background: color-mix(in srgb, var(--wb-bad) 18%, transparent); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--wb-bad) 60%, transparent); }
+
+/* ---- Component: bar chart (precomputed SVG coords; highlight the salient datum) ---- */
+.wb-chart svg .bar { fill: var(--wb-line); }
+.wb-chart svg .bar.is-peak { fill: var(--wb-accent); }   /* recolor the one datum that matters */
+.wb-chart svg .axis { stroke: var(--wb-line); stroke-width: 1.5; }
+.wb-chart svg text { fill: var(--wb-muted); font-family: var(--wb-font-mono); font-size: 10px; }
+.wb-chart svg text.is-peak { fill: var(--wb-text); font-weight: 600; }
+
+/* ---- Component: parametric knob (slider -> CSS var -> live preview; the reliable "felt" interaction) ---- */
+.wb-knob { border: var(--wb-border); border-radius: var(--wb-r-md); background: var(--wb-surface); box-shadow: var(--wb-shadow-sm); padding: var(--wb-sp-5); margin: var(--wb-sp-5) 0; }
+.wb-knob__row { display: flex; align-items: center; gap: var(--wb-sp-3); }
+.wb-knob__label { font-family: var(--wb-font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--wb-muted); min-width: 84px; }
+.wb-knob input[type="range"] { flex: 1; accent-color: var(--wb-accent); }
+.wb-knob__val { font-family: var(--wb-font-mono); font-size: 13px; color: var(--wb-accent); min-width: 52px; text-align: right; }
+.wb-knob__preview { height: 14px; border-radius: 999px; background: var(--wb-accent); width: var(--knob, 50%); margin-top: var(--wb-sp-4); transition: width .12s ease; }
+@media (prefers-reduced-motion: reduce) { .wb-knob__preview { transition: none; } }
+.wb-knob__caption { font-size: .9rem; color: var(--wb-sub); margin-top: var(--wb-sp-3); }
+
 .wb-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
@@ -316,6 +337,13 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
         </ul>
       </div>
 
+      <!-- Component: annotated code — diff variant (before -> after; teaches the change, not just the result) -->
+      <div class="wb-code">
+        <button class="wb-code__copy" type="button">Copy</button>
+        <pre><code>{{context line}}
+<span class="diff-del">{{removed line}}</span><span class="diff-add">{{added line}}</span>{{context line}}</code></pre>
+      </div>
+
       <!-- Component: inline SVG flow diagram (300ms transitions on .wb-node / .wb-edge) -->
       <figure class="wb-figure">
         <svg viewBox="0 0 600 90" role="img" aria-label="{{flow description}}">
@@ -336,6 +364,35 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
         </svg>
         <figcaption>{{caption}}</figcaption>
       </figure>
+
+      <!-- Component: bar chart (precomputed coords; the salient datum is recolored .is-peak) -->
+      <figure class="wb-figure wb-chart">
+        <svg viewBox="0 0 320 140" role="img" aria-label="{{chart description}}">
+          <line class="axis" x1="34" y1="112" x2="300" y2="112"/>
+          <rect class="bar" x="48"  y="74" width="34" height="38"/>
+          <rect class="bar" x="98"  y="54" width="34" height="58"/>
+          <rect class="bar is-peak" x="148" y="26" width="34" height="86"/>
+          <rect class="bar" x="198" y="66" width="34" height="46"/>
+          <rect class="bar" x="248" y="88" width="34" height="24"/>
+          <text x="65"  y="126" text-anchor="middle">{{a}}</text>
+          <text x="115" y="126" text-anchor="middle">{{b}}</text>
+          <text class="is-peak" x="165" y="126" text-anchor="middle">{{peak}}</text>
+          <text x="215" y="126" text-anchor="middle">{{d}}</text>
+          <text x="265" y="126" text-anchor="middle">{{e}}</text>
+        </svg>
+        <figcaption>{{caption — name what the peak means}}</figcaption>
+      </figure>
+
+      <!-- Component: parametric knob (slider -> CSS var -> live preview; felt interactivity, reliably) -->
+      <div class="wb-knob">
+        <div class="wb-knob__row">
+          <span class="wb-knob__label" id="knob-1-label">{{parameter}}</span>
+          <input type="range" id="knob-1" min="0" max="100" value="50" data-knob aria-labelledby="knob-1-label" aria-describedby="knob-1-val">
+          <span class="wb-knob__val" id="knob-1-val">50%</span>
+        </div>
+        <div class="wb-knob__preview" id="knob-1-preview"></div>
+        <p class="wb-knob__caption">{{what dragging this teaches}}</p>
+      </div>
 
       <!-- Component: comparison table (mono uppercase th, good/bad cells) -->
       <table class="wb-table">
@@ -544,16 +601,40 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
     ta.addEventListener("input", function () { answers["ft" + i] = ta.value; });
   });
 
-  // ---- Code copy ----
+  // ---- Code copy (with file:// fallback — navigator.clipboard is often blocked on file://) ----
   document.querySelectorAll(".wb-code__copy").forEach(function (btn) {
+    function flash() { var orig = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = orig; }, 1200); }
+    function fallback(text) {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", "");
+      ta.style.position = "fixed"; ta.style.left = "-9999px";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e) { /* no-op */ }
+      document.body.removeChild(ta); flash();
+    }
     btn.addEventListener("click", function () {
       var code = btn.parentElement.querySelector("code");
       if (!code) return;
       var text = code.innerText;
-      var done = function () { var orig = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = orig; }, 1200); };
-      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, done); }
-      else { done(); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(flash, function () { fallback(text); });
+      } else { fallback(text); }
     });
+  });
+
+  // ---- Parametric knob (slider -> CSS var -> live preview; in-memory only) ----
+  document.querySelectorAll("[data-knob]").forEach(function (input) {
+    var base = input.id;
+    var valEl = document.getElementById(base + "-val");
+    var preview = document.getElementById(base + "-preview");
+    function apply() {
+      var v = input.value;
+      if (valEl) valEl.textContent = v + "%";
+      if (preview) preview.style.setProperty("--knob", v + "%");
+      input.setAttribute("aria-valuetext", v + "%");
+    }
+    input.addEventListener("input", apply);
+    apply();
   });
 
   // ---- Term -> glossary highlight (micro-interaction) ----
