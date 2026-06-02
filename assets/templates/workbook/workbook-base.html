@@ -173,7 +173,7 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
 /* ---- Component: quote (pull-quote + attribution) ---- */
 .wb-quote { margin: var(--wb-sp-5) 0; padding-left: var(--wb-sp-5); border-left: 3px solid var(--wb-accent); }
 .wb-quote blockquote { margin: 0; font-style: italic; font-size: 1.15rem; line-height: 1.5; color: var(--wb-text); }
-.wb-quote cite { display: block; margin-top: var(--wb-sp-2); font-style: normal; font-size: .9rem; color: var(--wb-muted); }
+.wb-quote cite { display: block; margin-top: var(--wb-sp-2); font-style: normal; font-size: .9rem; color: var(--wb-sub); }
 
 /* ---- Component: accordion ---- */
 .wb-accordion { border: var(--wb-border); border-radius: var(--wb-r-md); background: var(--wb-surface); box-shadow: var(--wb-shadow-sm); margin: var(--wb-sp-5) 0; overflow: hidden; }
@@ -291,7 +291,7 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
    accent, the remainder accent-2; both driven by the same --knob var (no JS change). */
 .wb-knob__preview.is-split { width: 100%; transition: none;
   background: linear-gradient(90deg, var(--wb-accent) 0 var(--knob, 50%), var(--wb-accent-2) var(--knob, 50%) 100%); }
-.wb-knob__legend { display: flex; gap: var(--wb-sp-4); margin-top: var(--wb-sp-2); font-size: .8rem; color: var(--wb-muted); }
+.wb-knob__legend { display: flex; gap: var(--wb-sp-4); margin-top: var(--wb-sp-2); font-size: .8rem; color: var(--wb-sub); }
 .wb-knob__legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
 .wb-knob__legend .lg-a::before { background: var(--wb-accent); }
 .wb-knob__legend .lg-b::before { background: var(--wb-accent-2); }

@@ -25,12 +25,19 @@ from __future__ import annotations
 import re
 import sys
 
-CDN_RE = re.compile(r"https?://[^\"'\s]*(?:cdn\.|unpkg\.com|jsdelivr\.net|cdnjs\.)", re.I)
+# CDN only counts as a *runtime dependency* when it's a resource tag's href/src
+# (link/script/img/iframe) — not a plain <a> link to an educational resource.
+CDN_RE = re.compile(
+    r"""<(?:link|script|img|iframe)\b[^>]*?\b(?:href|src)\s*=\s*["'](https?://[^"']*(?:cdn\.|unpkg\.com|jsdelivr\.net|cdnjs\.)[^"']*)""",
+    re.I,
+)
 SCRIPT_SRC_RE = re.compile(r"<script\b[^>]*\bsrc\s*=", re.I)
+SCRIPT_BLOCK_RE = re.compile(r"<script\b[^>]*>(.*?)</script>", re.I | re.S)
+CODE_BLOCK_RE = re.compile(r"<(pre|code)\b[^>]*>.*?</\1>", re.I | re.S)
 STATE_RE = re.compile(r"\b(localStorage|sessionStorage|indexedDB|postMessage)\b")
 ID_RE = re.compile(r'\sid\s*=\s*"([^"]+)"', re.I)
-ROLE_REGION_RE = re.compile(r'role\s*=\s*"region"', re.I)
-ROLE_PROGRESS_RE = re.compile(r'role\s*=\s*"progressbar"', re.I)
+ROLE_REGION_RE = re.compile(r'role\s*=\s*["\']?region["\']?', re.I)
+ROLE_PROGRESS_RE = re.compile(r'role\s*=\s*["\']?progressbar["\']?', re.I)
 GFONTS_RE = re.compile(r"fonts\.googleapis\.com", re.I)
 
 
@@ -46,21 +53,25 @@ def validate(path: str) -> tuple[list[str], list[str]]:
     # --- Standalone ---
     if SCRIPT_SRC_RE.search(html):
         errors.append(f"{path}: external <script src=...> found (must be self-contained)")
-    cdn = {m.group(0) for m in CDN_RE.finditer(html)}
+    cdn = {m.group(1) for m in CDN_RE.finditer(html)}
     if cdn:
         errors.append(f"{path}: CDN runtime reference(s): {', '.join(sorted(cdn))}")
 
-    # --- In-memory only (V1) ---
-    state_hits = sorted({m.group(1) for m in STATE_RE.finditer(html)})
+    # --- In-memory only (V1) — scan SCRIPT CONTENTS only, so prose/code that merely
+    #     *mentions* localStorage (e.g. a lesson about it) doesn't false-fail. ---
+    script_src = "\n".join(m.group(1) for m in SCRIPT_BLOCK_RE.finditer(html))
+    state_hits = sorted({m.group(1) for m in STATE_RE.finditer(script_src)})
     if state_hits:
         errors.append(
-            f"{path}: persistence/parent-comm API(s) present (V1 is in-memory only): "
+            f"{path}: persistence/parent-comm API(s) used in script (V1 is in-memory only): "
             + ", ".join(state_hits)
         )
 
-    # --- Globally-unique ids ---
+    # --- Globally-unique ids — exclude <pre>/<code> so sample-code placeholder ids
+    #     inside lessons don't count as real document ids. ---
+    html_no_code = CODE_BLOCK_RE.sub("", html)
     seen: dict[str, int] = {}
-    for m in ID_RE.finditer(html):
+    for m in ID_RE.finditer(html_no_code):
         seen[m.group(1)] = seen.get(m.group(1), 0) + 1
     dupes = {k: v for k, v in seen.items() if v > 1}
     if dupes:
