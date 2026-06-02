@@ -105,6 +105,9 @@ preferences do.
 | Component | Purpose |
 |---|---|
 | **step / section** | A unit of the flow. Each `H2` of a reading is typically one step. |
+| **lede** | A one-line lead paragraph (`.wb-lede`) that frames a step before the body. Bigger, muted; sets up what the step is about. |
+| **statement / callout** | A bordered emphasis block for a load-bearing sentence; key words in `<strong>` render in the accent. |
+| **quote** | A pull-quote (`.wb-quote` `<blockquote>` + optional `<cite>`) for a memorable/authoritative line. |
 | **progress bar** | Course-level and per-module completion %. Updates as the learner advances. |
 | **completion event** | Fired (not persisted) when the learner reaches the end. A hook point for V2. |
 
@@ -136,7 +139,7 @@ preferences do.
 
 | Component | Purpose |
 |---|---|
-| **code block** | Syntax-styled code with a copy button (with a `file://` clipboard fallback) and optional margin annotations / line callouts. High value for a coding curriculum. |
+| **code block** | Syntax-styled code with a copy button (with a `file://` clipboard fallback) and optional margin annotations / line callouts. High value for a coding curriculum. **Syntax highlighting** is dependency-free: wrap tokens by role in `<span>`s — `kw` (keyword), `str` (string), `num` (number), `fn` (function/type), `cmt` (comment). Fixed legible hues on the dark code surface (not brand tokens). |
 | **code diff** | A before -> after variant of the code block: removed lines (`.diff-del`, struck through) and added lines (`.diff-add`) banded inline. Teaches *the change*, not just the result — the core move of teaching code. |
 
 ### Parametric knob (the reliable "felt" interaction)
@@ -144,6 +147,7 @@ preferences do.
 | Component | Purpose |
 |---|---|
 | **knob** | A slider whose value writes a CSS custom property (`--knob`) that a preview element consumes and a readout mirrors. Lets a learner *drag and watch the effect* — the felt interactivity of the reference site's simulations, delivered through a fixed, tested component rather than bespoke per-concept JS. In-memory only. |
+| **knob (split-bar)** | The `is-split` preview variant: a full-width **A-vs-B bar** where the value portion is the accent and the remainder is `--wb-accent-2`, with a 2-item legend. Use when the value is one side of a split (e.g. P(1) vs P(0)) so the bar matches a caption that names both outcomes. Same `--knob` wiring — no extra JS. |
 
 ### Course navigation
 

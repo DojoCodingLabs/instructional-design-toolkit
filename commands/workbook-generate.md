@@ -108,11 +108,14 @@ or by each `workbook-module-composer` subagent (fan-out). Apply the
 **content-shape -> component mapping** from the skill. Summary:
 
 - Course -> module **chapters** + a **table of contents** + course **progress**.
-- Each reading -> a run of steps in its module chapter; each `H2` -> a **step**.
+- Each reading -> a run of steps in its module chapter; each `H2` -> a **step**;
+  open a step with a one-line **lede** when it helps frame the section.
 - Tables -> **comparison diagram** / **tabs** / **chart** (by intent).
 - Ordered process lists -> **flow diagram** / stepper.
-- Fenced code -> **annotated code block**.
-- Load-bearing sentences -> **statement / callout**.
+- Fenced code -> **annotated code block** (highlight tokens by role: `kw`/`str`/`num`/`fn`/`cmt`).
+- Load-bearing sentence -> **statement / callout**; a memorable/authoritative line -> **quote**.
+- A value that's one side of a split (e.g. a probability, P(1) vs P(0)) -> a
+  **knob** with the `is-split` two-color bar so the viz matches the caption.
 - Optional depth -> **accordion**; parallel alternatives -> **tabs**.
 - End of each major section -> an optional **predict-and-reveal** self-check
   (think first, then reveal the answer — not a graded quiz); `quiz-*.md` ->
@@ -202,6 +205,22 @@ This is a quality pass on the *creative payload* only — the invariant frame
    - The output file path
 3. **Suggest**: "Open in a browser to review; traverse the modules and complete
    a few checks. Answers reset on refresh (expected — persistence is deferred)."
+
+## Phase 6 — Validate the generated file
+
+Run the output validator on the file you just wrote:
+
+```
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_workbook.py <output-path>
+```
+
+It checks the invariants the artifact must hold: **standalone** (no external
+`<script src>` / CDN), **in-memory only** (no `localStorage` / `sessionStorage`
+/ `indexedDB` / `postMessage`), **globally-unique element ids** (critical after
+a fan-out assembly), and warns on missing a11y landmarks or a missing
+`system-ui` font fallback. **Errors exit non-zero — fix them before reporting
+the workbook as done.** (If `${CLAUDE_PLUGIN_ROOT}` is unavailable, run it by its
+repo-relative path `scripts/validate_workbook.py`.)
 
 ## Overlay invocation (post-base-draft)
 

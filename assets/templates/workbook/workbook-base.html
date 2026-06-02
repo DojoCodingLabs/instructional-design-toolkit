@@ -167,6 +167,14 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
 }
 .wb-callout strong { color: var(--wb-accent); font-weight: 600; }
 
+/* ---- Component: lede (lead paragraph that opens a step) ---- */
+.wb-lede { font-size: 1.18rem; line-height: 1.6; color: var(--wb-sub); margin: 0 0 var(--wb-sp-4); max-width: var(--wb-measure); }
+
+/* ---- Component: quote (pull-quote + attribution) ---- */
+.wb-quote { margin: var(--wb-sp-5) 0; padding-left: var(--wb-sp-5); border-left: 3px solid var(--wb-accent); }
+.wb-quote blockquote { margin: 0; font-style: italic; font-size: 1.15rem; line-height: 1.5; color: var(--wb-text); }
+.wb-quote cite { display: block; margin-top: var(--wb-sp-2); font-style: normal; font-size: .9rem; color: var(--wb-muted); }
+
 /* ---- Component: accordion ---- */
 .wb-accordion { border: var(--wb-border); border-radius: var(--wb-r-md); background: var(--wb-surface); box-shadow: var(--wb-shadow-sm); margin: var(--wb-sp-5) 0; overflow: hidden; }
 .wb-accordion__trigger {
@@ -256,6 +264,15 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
 .wb-code pre .diff-add { display: block; background: color-mix(in srgb, var(--wb-good) 22%, transparent); }
 .wb-code pre .diff-del { display: block; background: color-mix(in srgb, var(--wb-bad) 18%, transparent); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--wb-bad) 60%, transparent); }
 
+/* ---- Code syntax highlighting (dependency-free, fixed palette on the dark code surface).
+   Convention: wrap tokens by role — kw=keyword, str=string, num=number, fn=function/type,
+   cmt=comment. Fixed hues (not brand tokens) for legibility on the code background. ---- */
+.wb-code pre .kw  { color: #c79bf0; }   /* keyword */
+.wb-code pre .str { color: #9ed7a8; }   /* string */
+.wb-code pre .num { color: #e0a87a; }   /* number */
+.wb-code pre .fn  { color: #7fc7e8; }   /* function / type */
+.wb-code pre .cmt { color: #8a8a93; font-style: italic; }   /* comment */
+
 /* ---- Component: bar chart (precomputed SVG coords; highlight the salient datum) ---- */
 .wb-chart svg .bar { fill: var(--wb-line); }
 .wb-chart svg .bar.is-peak { fill: var(--wb-accent); }   /* recolor the one datum that matters */
@@ -270,6 +287,14 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
 .wb-knob input[type="range"] { flex: 1; accent-color: var(--wb-accent); }
 .wb-knob__val { font-family: var(--wb-font-mono); font-size: 13px; color: var(--wb-accent); min-width: 52px; text-align: right; }
 .wb-knob__preview { height: 14px; border-radius: 999px; background: var(--wb-accent); width: var(--knob, 50%); margin-top: var(--wb-sp-4); transition: width .12s ease; }
+/* Split variant: a full-width A-vs-B bar (e.g. P(1) vs P(0)). The value portion is
+   accent, the remainder accent-2; both driven by the same --knob var (no JS change). */
+.wb-knob__preview.is-split { width: 100%; transition: none;
+  background: linear-gradient(90deg, var(--wb-accent) 0 var(--knob, 50%), var(--wb-accent-2) var(--knob, 50%) 100%); }
+.wb-knob__legend { display: flex; gap: var(--wb-sp-4); margin-top: var(--wb-sp-2); font-size: .8rem; color: var(--wb-muted); }
+.wb-knob__legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+.wb-knob__legend .lg-a::before { background: var(--wb-accent); }
+.wb-knob__legend .lg-b::before { background: var(--wb-accent-2); }
 @media (prefers-reduced-motion: reduce) { .wb-knob__preview { transition: none; } }
 .wb-knob__caption { font-size: .9rem; color: var(--wb-sub); margin-top: var(--wb-sp-3); }
 
@@ -328,10 +353,20 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
         <div class="wb-eyebrow">{{module.title}}</div>
       </div>
       <h2>{{step.title}}</h2>
+
+      <!-- Component: lede (one-line framing that opens the step) -->
+      <p class="wb-lede">{{lede — the one sentence that frames this step}}</p>
+
       <p>{{step.body}} A key term like <span class="wb-term" data-term="ring">the ring</span> can be linked to the glossary below.</p>
 
       <!-- Component: statement / callout -->
       <div class="wb-callout"><strong>{{key word}}</strong> {{statement}}</div>
+
+      <!-- Component: quote (pull-quote + attribution) -->
+      <figure class="wb-quote">
+        <blockquote>{{memorable line}}</blockquote>
+        <cite>{{attribution — optional}}</cite>
+      </figure>
 
       <!-- Component: accordion -->
       <div class="wb-accordion">
@@ -349,10 +384,10 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
         <div class="wb-tabs__panel" id="panel-1b" role="tabpanel" aria-labelledby="tab-1b" hidden>{{panel B}}</div>
       </div>
 
-      <!-- Component: annotated code -->
+      <!-- Component: annotated code (wrap tokens by role: kw/str/num/fn/cmt — see skill) -->
       <div class="wb-code">
         <button class="wb-code__copy" type="button">Copy</button>
-        <pre><code>{{code}}</code></pre>
+        <pre><code><span class="kw">{{keyword}}</span> {{code}} <span class="cmt">{{# comment}}</span></code></pre>
         <ul class="wb-code__notes">
           <li>{{annotation}}</li>
         </ul>
@@ -413,6 +448,19 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
         </div>
         <div class="wb-knob__preview" id="knob-1-preview"></div>
         <p class="wb-knob__caption">{{what dragging this teaches}}</p>
+      </div>
+
+      <!-- Component: parametric knob — SPLIT variant (use when the value is one side of an
+           A-vs-B split, e.g. P(1) vs P(0)). Add `is-split` to the preview + a legend. -->
+      <div class="wb-knob">
+        <div class="wb-knob__row">
+          <span class="wb-knob__label" id="knob-2-label">{{parameter}}</span>
+          <input type="range" id="knob-2" min="0" max="100" value="50" data-knob aria-labelledby="knob-2-label" aria-describedby="knob-2-val">
+          <span class="wb-knob__val" id="knob-2-val">50%</span>
+        </div>
+        <div class="wb-knob__preview is-split" id="knob-2-preview"></div>
+        <div class="wb-knob__legend"><span class="lg-a">{{outcome A — the value portion}}</span><span class="lg-b">{{outcome B — the remainder}}</span></div>
+        <p class="wb-knob__caption">{{what dragging this teaches — name both outcomes}}</p>
       </div>
 
       <!-- Component: comparison table (mono uppercase th, good/bad cells) -->
