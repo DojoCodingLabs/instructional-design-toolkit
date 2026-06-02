@@ -73,11 +73,11 @@ order until it carries the consumer's voice.
 
 ### Surface counts (current)
 
-- **27 commands** under `commands/` (plus 2 internal `_translation-pipeline.md`
+- **30 commands** under `commands/` (plus 2 internal `_translation-pipeline.md`
   / `_translation-strategy.md` includes — underscore prefix marks them as
   helpers reused by `translate-content`).
-- **19 agents** under `agents/`.
-- **18 skills** under `skills/<skill-name>/SKILL.md`.
+- **20 agents** under `agents/`.
+- **20 skills** under `skills/<skill-name>/SKILL.md`.
 - **1 runtime** under `assets/runtime/overlay-protocol.md` (the executable
   spec of the Base + Overlay loop).
 - **1 CI workflow** under `.github/workflows/lint.yml` with 3 lint scripts

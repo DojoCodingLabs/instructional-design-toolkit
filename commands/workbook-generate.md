@@ -76,9 +76,36 @@ and `workbooks.step_patterns`. Read:
 6. Read each reading's frontmatter (`title`, `order`, `duration_min`, `module`,
    `course`, `tags`) and body (H1 -> H2 -> H3, lists, tables, code, prose).
 
+## Phase 2.5 — Execution strategy (linear vs. per-module fan-out)
+
+Choose how to compose the workbook based on course size:
+
+- **Small course** (≈ 2 modules or fewer, or little total reading) — compose
+  **linearly** in this session (Phases 3–4 inline). Simplest; no drift risk.
+- **Larger course** — **fan out**: dispatch one
+  `${CLAUDE_PLUGIN_ROOT}/agents/workbook-module-composer.md` subagent **per
+  module, in parallel** (via the standard Task/Agent tool). This keeps each
+  agent's context focused on one module, handles big courses without exhausting
+  the window, and tends to vary visualizations across modules. This uses
+  ordinary subagents — **NOT** any session-specific orchestration tool — so the
+  command stays portable across consumer installs.
+
+When fanning out, pass each composer: `module_index` (its 1-based position, used
+as the `m{N}-` ID namespace), `module_path`, the ordered `text_classes` list,
+`module_title`, the resolved `design` tokens + enabled `components`, and any
+`sibling_artifacts`. Each returns a **MANIFEST + a namespaced `.wb-module`
+FRAGMENT** per that agent's output contract — not a full HTML. Collect all
+fragments + manifests for Phase 4 assembly.
+
+Both paths produce the same thing — composed module chunks. Phase 3 is the
+composition ruleset (applied inline when linear, or by each composer when fanned
+out); Phase 4 assembles.
+
 ## Phase 3 — Map content to components
 
-Apply the **content-shape -> component mapping** from the skill. Summary:
+These rules govern composing **each module's chunk** — applied inline (linear)
+or by each `workbook-module-composer` subagent (fan-out). Apply the
+**content-shape -> component mapping** from the skill. Summary:
 
 - Course -> module **chapters** + a **table of contents** + course **progress**.
 - Each reading -> a run of steps in its module chapter; each `H2` -> a **step**.
@@ -119,7 +146,14 @@ payload" and "The kit is a floor, not a ceiling".
    properties (`:root` variables). Under graceful-degrade, keep the neutral
    defaults already in the template.
 3. Replace the content region between the WORKBOOK CONTENT markers with the
-   composed module chapters, steps, and components from Phase 3.
+   composed module chunks, in module order. **If you fanned out (Phase 2.5):**
+   drop in each composer's `FRAGMENT` verbatim, ordered by `module_index`;
+   verify every `id` is `m{N}-`-namespaced and **globally unique** across
+   fragments (fix or re-request any collision); the composers deliberately omit
+   the TOC, progress bar, and module footers — **you own those** and build them
+   here (the omitted module footer is why the "Module N of M" arc stays correct
+   at assembly). Build the `.wb-nav` table of contents from the `MANIFEST`s
+   (module links `#mod-{N}` + step links `#m{N}-step-{k}`).
 4. Honour `workbooks.scroll_behavior` — `doc` (navigable, module-chunked;
    **default**) or `stepped` (one screen at a time) — and `workbooks.animation`
    (enter transition + `prefers-reduced-motion`). In `doc` mode the TOC is a

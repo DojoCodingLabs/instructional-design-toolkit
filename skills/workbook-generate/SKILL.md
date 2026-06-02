@@ -250,6 +250,46 @@ visualization is encouraged. The only thing to avoid is fragile, untested
 **stateful JS** widgets — those should be added to the kit deliberately (and
 tested), not improvised per page.
 
+## Generation at scale: per-module fan-out (orchestration)
+
+A per-course workbook can span many modules × text classes — more than one
+context window composes well in a single pass. So generation is **size-gated**:
+
+- **Small course** (≈ 2 modules or fewer) → compose **linearly** in one pass.
+- **Larger course** → **map → reduce**: dispatch one `workbook-module-composer`
+  subagent **per module** (in parallel, via the standard Task/Agent tool — never
+  a session-specific orchestration tool; the command must stay portable), then
+  the orchestrator **assembles** the returned fragments into the single
+  self-contained workbook.
+
+This is also a quiet win for variety: independent per-module composition resists
+the "I already used a chart, reuse it" monotony a single pass can fall into.
+
+### The fragment contract (what binds it together)
+
+Each composer returns a **MANIFEST** (`{ moduleId, title, steps[], components_used }`)
+plus a **FRAGMENT**: one `<div class="wb-module" id="mod-{N}">` of namespaced
+`.wb-step`s and kit components — **not** a full document. Rules:
+
+- **ID namespacing:** every `id` / `aria-controls` / `aria-labelledby` is
+  prefixed `m{N}-` (module index) so fragments concatenate without collisions.
+- **Fragment only:** no `<html>/<head>/<style>/<script>`, no `.wb-progress`, no
+  `.wb-nav`, **no `.wb-module__nav` footer**. Those are global and the
+  orchestrator owns them — the footer is added at assembly so the "Module N of M"
+  arc is correct.
+- **No hardcoded brand:** consume design tokens (`var(--wb-accent)`, …), never
+  literal hex/fonts. Voice-neutral; the forward-hook teaser stays an overlay
+  slot.
+
+### Why it stays consistent (no stitched-together feel)
+
+The shared `instruction-bundle-spec.yaml` (brand / a11y / kit) is the binding
+contract handed to every composer, so fragments are visually uniform by
+construction. The **assembler** then runs a normalization pass — verify each
+fragment uses only allowed components, IDs are namespaced + globally unique,
+a11y roles are present — and runs the variety/fit self-check on the assembled
+whole. Drift is bounded by the frame, not left to chance.
+
 ## Consuming the consumer spec (`instruction-bundle-spec.yaml`)
 
 The workbook's brand + structural vocabulary comes from the consumer's
