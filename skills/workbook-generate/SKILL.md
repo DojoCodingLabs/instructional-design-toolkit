@@ -2,8 +2,9 @@
 name: workbook-generate
 description: >
   Interactive course workbook design system — turns a course's text classes into one
-  standalone, accessible, interactive HTML explainer (Rise/Typeform-style continuous
-  flow). Defines the curated component kit, the content-shape -> component mapping rules,
+  standalone, accessible, interactive HTML explainer (a navigable document chunked by
+  module, Articulate-Rise lesson model; stepped mode for screen-recording).
+  Defines the curated component kit, the content-shape -> component mapping rules,
   the accessibility contract, and the consumer-spec (instruction-bundle-spec.yaml)
   consumption + graceful-degrade rules. Consumer plugins own the brand tokens and the
   component vocabulary via their `workbooks` spec section; this skill stays voice-neutral.
@@ -50,13 +51,28 @@ freeform per-concept JavaScript.
 
 One `workbook-{course-slug}.html` covering **all modules** of a course, with:
 
-- a **course-navigation layer** — module chapters / a table of contents /
-  cross-module progress, above the per-reading flow;
-- a continuous **flow** — CSS scroll-snap **or** stepped next/back (chosen per
-  the consumer spec's `workbooks.scroll_behavior`);
-- a **progress indicator** (course-level and per-module);
+- a **module-chunked navigable flow** (default, `scroll_behavior: doc`): one
+  module ("lesson") shows at a time — the Articulate-Rise model, not one endless
+  scroll. A **stepped** flow (one screen at a time, for screen-recording) is the
+  alternative. **No scroll-snap** — plain smooth scroll within a lesson.
+- a **table of contents** that switches the active module — a **sticky sidebar
+  on desktop**, a **collapsible "Contents" menu on mobile** (a slim sticky bar +
+  toggle, never a wall of links pushing content down);
+- a **progress indicator** (module-based) and, at each module's end, an **arc
+  indicator** ("Module N of M") + a **forward-hook** Next control;
 - **interactive blocks** chosen to match each piece of content's shape (see the
   mapping rules below).
+
+### Light-touch storytelling (structure here, voice in the overlay)
+
+The base ships the *slots* that give a course narrative momentum, voice-neutral:
+the **arc indicator** (where you are), and a **forward-hook** on the Next control
+— a primary action line (`Next: {title} →`) plus an **optional teaser line**
+that is a **voice slot**. Leave the teaser empty in the base draft (it hides via
+`:empty`, so a generic consumer just sees `Next: {title} →`); the consumer's
+voice overlay fills it with momentum copy (the L3 "momentum endings" concern).
+Richer beats (transition/closure cards, connective lesson intros) are a
+deliberate future addition, not in the base today.
 
 An optional `--scope module` narrows generation to a single module
 (`workbook-{module-slug}.html` under that module).
@@ -207,7 +223,10 @@ skill reads:
 
 - **`design`** (top level) -> `palette`, `typography`, `voice`, `spacing`,
   `components`. Inlined into the generated HTML as CSS custom properties.
-- **`workbooks.scroll_behavior`** -> `snap` (continuous scroll-snap) or stepped.
+- **`workbooks.scroll_behavior`** -> `doc` (navigable, module-chunked; **default**)
+  or `stepped` (one screen at a time, for recording). No scroll-snap.
+- **`workbooks.navigation`** -> TOC layout (sidebar desktop / collapsible mobile),
+  arc indicator, and the forward-hook on the Next control (teaser = voice slot).
 - **`workbooks.animation`** -> `on_enter` transition + `reduced_motion` policy.
 - **`workbooks.step_patterns`** -> the available step layouts (hero, content,
   quiz, branch, progress, ...).

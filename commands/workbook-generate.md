@@ -7,8 +7,11 @@ argument-hint: "[course-slug] [--scope course|module] [--module module-slug]"
 
 You are generating a **standalone interactive workbook** — a single,
 self-contained HTML file that renders a course's **text classes** (`text-*.md`)
-as an interactive explainer the learner scrolls or steps through
-(Rise/Typeform-style continuous flow).
+as an interactive explainer. The default flow is a **navigable document chunked
+by module** ("lesson"): one module shows at a time, switched from a table of
+contents (a sticky sidebar on desktop, a collapsible "Contents" menu on mobile)
+— the Articulate-Rise lesson model, not one endless scroll. A **stepped**
+(one-screen-at-a-time) flow is also available for screen-recording.
 
 This is the student-facing sibling of `course-visualize` (instructor analytics
 view). It is distinct from `slides-generate`, which turns a **video brief** into
@@ -110,8 +113,13 @@ prefer one well-chosen block per concept over decorative ones.
    defaults already in the template.
 3. Replace the content region between the WORKBOOK CONTENT markers with the
    composed module chapters, steps, and components from Phase 3.
-4. Honour `workbooks.scroll_behavior` (scroll-snap vs stepped) and
-   `workbooks.animation` (enter transition + `prefers-reduced-motion`).
+4. Honour `workbooks.scroll_behavior` — `doc` (navigable, module-chunked;
+   **default**) or `stepped` (one screen at a time) — and `workbooks.animation`
+   (enter transition + `prefers-reduced-motion`). In `doc` mode the TOC is a
+   sticky sidebar on desktop and a collapsible "Contents" menu on mobile; each
+   module ends with an **arc indicator** ("Module N of M") + a **forward-hook**
+   Next control. The hook's teaser line is a **voice slot** — leave it empty in
+   the base draft; the consumer overlay fills it with momentum copy.
 5. Enforce the **standalone contract**: no external `<script>`, no CDN runtime
    deps; fonts via a Google Fonts `<link>` with `system-ui` fallback; design CSS
    inlined; any image inlined or relative.
