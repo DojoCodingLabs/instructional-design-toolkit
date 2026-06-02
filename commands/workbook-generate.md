@@ -84,9 +84,16 @@ Apply the **content-shape -> component mapping** from the skill. Summary:
 - Fenced code -> **annotated code block**.
 - Load-bearing sentences -> **statement / callout**.
 - Optional depth -> **accordion**; parallel alternatives -> **tabs**.
-- End of each major section -> an optional auto-generated **multiple-choice**
-  check drawn from the reading; `quiz-*.md` -> module **checkpoint** questions.
+- End of each major section -> an optional **predict-and-reveal** self-check
+  (think first, then reveal the answer — not a graded quiz); `quiz-*.md` ->
+  predict-and-reveal checks.
+- A tuned parameter / reflection / topic to go deeper -> an **export /
+  copy-as-prompt** so it leaves the page for Claude or a mentor.
 - Course intro -> **hero**; course end -> **recap** + **completion event**.
+
+Interactivity must either teach by being *felt* (knobs, diagrams, reveals) or
+*close the loop* (export). Never add a widget that captures an answer and does
+nothing with it — V1 persists nothing.
 
 Only use a component the resolved spec's `workbooks.components` enables (or the
 neutral defaults when that key is absent). Interactivity must earn its place —
@@ -96,8 +103,8 @@ prefer one well-chosen block per concept over decorative ones.
 
 1. Start from the base template:
    `${CLAUDE_PLUGIN_ROOT}/assets/templates/workbook/workbook-base.html`. It
-   ships the full CSS runtime, the vanilla-JS flow/progress/quiz/disclosure
-   engine, and example markup for every component.
+   ships the full CSS runtime, the vanilla-JS flow / progress / disclosure /
+   knob / export engine, and example markup for every component.
 2. Inline the resolved `design` palette/typography as the template's CSS custom
    properties (`:root` variables). Under graceful-degrade, keep the neutral
    defaults already in the template.
@@ -111,7 +118,7 @@ prefer one well-chosen block per concept over decorative ones.
 6. Enforce the **accessibility contract**: `role="region"` + `aria-label` per
    step, `<nav>` for the TOC, `role="progressbar"` with `aria-valuenow`,
    keyboard advance (Enter / arrows), reduced-motion support, AA contrast,
-   text+icon quiz feedback (not color alone).
+   state conveyed by text + icon (not color alone).
 7. **State is in-memory only** — wire the completion event as a fire-only hook;
    do NOT add `localStorage`, `postMessage`, or any persistence.
 

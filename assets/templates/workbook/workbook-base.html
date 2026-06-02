@@ -175,30 +175,15 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
 .wb-reveal__answer { margin-top: var(--wb-sp-3); padding: var(--wb-sp-4) var(--wb-sp-5); background: var(--wb-surface); border: var(--wb-border); border-radius: var(--wb-r-md); box-shadow: var(--wb-shadow-sm); color: var(--wb-sub); }
 .wb-reveal__answer[hidden] { display: none; }
 
-/* ---- Component: multiple choice / quiz ---- */
-.wb-quiz { border: var(--wb-border); border-radius: var(--wb-r-md); background: var(--wb-surface); box-shadow: var(--wb-shadow-sm); padding: var(--wb-sp-5); margin: var(--wb-sp-5) 0; }
-.wb-quiz__q { font-weight: 600; margin: 0 0 var(--wb-sp-3); }
-.wb-quiz__opt {
-  display: flex; gap: var(--wb-sp-3); align-items: center; width: 100%; text-align: left; font: inherit; cursor: pointer;
-  background: var(--wb-bg); border: 1.5px solid var(--wb-line); border-radius: var(--wb-r-sm);
-  padding: var(--wb-sp-3) var(--wb-sp-4); margin-bottom: var(--wb-sp-2); transition: border-color .15s ease, background .15s ease;
-}
-.wb-quiz__opt:hover { border-color: var(--wb-accent); }
-.wb-quiz__opt.is-correct { border-color: var(--wb-good); background: color-mix(in srgb, var(--wb-good) 9%, var(--wb-surface)); }
-.wb-quiz__opt.is-wrong { border-color: var(--wb-bad); background: color-mix(in srgb, var(--wb-bad) 9%, var(--wb-surface)); }
-.wb-quiz__mark { margin-left: auto; font-weight: 700; font-family: var(--wb-font-mono); }
-.wb-quiz__opt.is-correct .wb-quiz__mark { color: var(--wb-good); }
-.wb-quiz__opt.is-wrong .wb-quiz__mark { color: var(--wb-bad); }
-.wb-quiz__feedback { margin: var(--wb-sp-2) 0 0; font-size: .92rem; color: var(--wb-sub); }
-.wb-quiz__feedback[hidden] { display: none; }
+/* ---- Component: predict-and-reveal (a prompt + a hidden model answer; reuses .wb-reveal) ---- */
+/* "Think first, then reveal the expert answer." Pure pedagogy — no capture, no grading. */
+.wb-reveal__prompt { font-weight: 600; margin: 0 0 var(--wb-sp-3); }
 
-/* ---- Component: free text ---- */
-.wb-freetext { margin: var(--wb-sp-5) 0; }
-.wb-freetext label { display: block; font-weight: 600; margin-bottom: var(--wb-sp-2); }
-.wb-freetext textarea {
-  width: 100%; min-height: 96px; font: inherit; padding: var(--wb-sp-3); border: var(--wb-border);
-  border-radius: var(--wb-r-sm); background: var(--wb-surface); color: var(--wb-text); resize: vertical;
-}
+/* ---- Component: export / copy-as-prompt (the loop-closer; hand the learner something to paste back) ---- */
+.wb-export { border: var(--wb-border); border-left: 3px solid var(--wb-accent); border-radius: 0 var(--wb-r-md) var(--wb-r-md) 0; background: var(--wb-surface); box-shadow: var(--wb-shadow-sm); padding: var(--wb-sp-4) var(--wb-sp-5); margin: var(--wb-sp-5) 0; display: flex; align-items: center; gap: var(--wb-sp-4); }
+.wb-export__text { flex: 1; color: var(--wb-sub); font-size: .95rem; }
+.wb-export__btn { font: inherit; font-size: .9rem; cursor: pointer; white-space: nowrap; border: 1.5px solid var(--wb-accent); background: var(--wb-accent); color: #fff; padding: var(--wb-sp-2) var(--wb-sp-4); border-radius: var(--wb-r-sm); transition: box-shadow .15s ease; }
+.wb-export__btn:hover { box-shadow: var(--wb-shadow-md); }
 
 /* ---- Component: annotated code ---- */
 .wb-code { position: relative; margin: var(--wb-sp-5) 0; }
@@ -402,24 +387,18 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
         </tbody>
       </table>
 
-      <!-- Component: multiple-choice check -->
-      <div class="wb-quiz" data-answer="1">
-        <p class="wb-quiz__q">{{question}}</p>
-        <button class="wb-quiz__opt" data-index="0">{{option 0}}<span class="wb-quiz__mark" aria-hidden="true"></span></button>
-        <button class="wb-quiz__opt" data-index="1">{{option 1 (correct)}}<span class="wb-quiz__mark" aria-hidden="true"></span></button>
-        <p class="wb-quiz__feedback" role="status" hidden></p>
-      </div>
-
-      <!-- Component: free text -->
-      <div class="wb-freetext">
-        <label for="ft-1">{{prompt}}</label>
-        <textarea id="ft-1" data-freetext placeholder="{{placeholder}}"></textarea>
-      </div>
-
-      <!-- Component: reveal -->
+      <!-- Component: predict-and-reveal (think first, then reveal the expert answer — no capture, no grading) -->
       <div class="wb-reveal">
-        <button class="wb-btn wb-btn--ghost" type="button" aria-expanded="false" aria-controls="reveal-1">{{reveal prompt}}</button>
-        <div class="wb-reveal__answer" id="reveal-1" hidden>{{answer}}</div>
+        <p class="wb-reveal__prompt">{{question to think about first}}</p>
+        <button class="wb-btn wb-btn--ghost" type="button" aria-expanded="false" aria-controls="reveal-1">Reveal the answer</button>
+        <div class="wb-reveal__answer" id="reveal-1" hidden>{{model answer / expert take}}</div>
+      </div>
+
+      <!-- Component: export / copy-as-prompt (loop-closer — hand the learner something to paste back into Claude or a mentor) -->
+      <div class="wb-export">
+        <p class="wb-export__text">{{what this exports — e.g. "Take this further with Claude"}}</p>
+        <button class="wb-export__btn" type="button" data-export>Copy as prompt</button>
+        <pre class="wb-export__payload" hidden>{{the prompt text the button copies}}</pre>
       </div>
 
       <!-- Component: glossary (terms above link here on hover via data-term) -->
@@ -570,41 +549,11 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
     });
   });
 
-  // ---- Multiple choice (in-memory only) ----
-  var answers = {}; // questionId -> chosenIndex (session memory; never persisted)
-  document.querySelectorAll(".wb-quiz").forEach(function (quiz, qi) {
-    var correct = parseInt(quiz.getAttribute("data-answer"), 10);
-    var feedback = quiz.querySelector(".wb-quiz__feedback");
-    quiz.querySelectorAll(".wb-quiz__opt").forEach(function (opt) {
-      opt.addEventListener("click", function () {
-        var idx = parseInt(opt.getAttribute("data-index"), 10);
-        answers["q" + qi] = idx;
-        quiz.querySelectorAll(".wb-quiz__opt").forEach(function (o) {
-          o.classList.remove("is-correct", "is-wrong");
-          var m = o.querySelector(".wb-quiz__mark"); if (m) m.textContent = "";
-        });
-        var isRight = idx === correct;
-        opt.classList.add(isRight ? "is-correct" : "is-wrong");
-        var mark = opt.querySelector(".wb-quiz__mark");
-        if (mark) mark.textContent = isRight ? "✓" : "✗"; // icon + color, not color alone
-        if (!isRight) {
-          var right = quiz.querySelector('.wb-quiz__opt[data-index="' + correct + '"]');
-          if (right) { right.classList.add("is-correct"); var rm = right.querySelector(".wb-quiz__mark"); if (rm) rm.textContent = "✓"; }
-        }
-        if (feedback) { feedback.hidden = false; feedback.textContent = isRight ? "Correct." : "Not quite — the correct answer is highlighted."; }
-      });
-    });
-  });
-
-  // ---- Free text (in-memory only) ----
-  document.querySelectorAll("[data-freetext]").forEach(function (ta, i) {
-    ta.addEventListener("input", function () { answers["ft" + i] = ta.value; });
-  });
-
-  // ---- Code copy (with file:// fallback — navigator.clipboard is often blocked on file://) ----
-  document.querySelectorAll(".wb-code__copy").forEach(function (btn) {
-    function flash() { var orig = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = orig; }, 1200); }
-    function fallback(text) {
+  // ---- Clipboard helper (with file:// fallback — navigator.clipboard is often blocked on file://) ----
+  function copyToClipboard(text, btn, label) {
+    label = label || "Copied";
+    function flash() { var orig = btn.textContent; btn.textContent = label; setTimeout(function () { btn.textContent = orig; }, 1200); }
+    function fallback() {
       var ta = document.createElement("textarea");
       ta.value = text; ta.setAttribute("readonly", "");
       ta.style.position = "fixed"; ta.style.left = "-9999px";
@@ -612,13 +561,24 @@ body[data-flow="stepped"] .wb-stepper { display: flex; }
       try { document.execCommand("copy"); } catch (e) { /* no-op */ }
       document.body.removeChild(ta); flash();
     }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flash, fallback);
+    } else { fallback(); }
+  }
+
+  // ---- Code copy ----
+  document.querySelectorAll(".wb-code__copy").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var code = btn.parentElement.querySelector("code");
-      if (!code) return;
-      var text = code.innerText;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(flash, function () { fallback(text); });
-      } else { fallback(text); }
+      if (code) copyToClipboard(code.innerText, btn);
+    });
+  });
+
+  // ---- Export / copy-as-prompt (loop-closer; in-memory payload, nothing persisted) ----
+  document.querySelectorAll("[data-export]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var payload = btn.parentElement.querySelector(".wb-export__payload");
+      if (payload) copyToClipboard(payload.innerText, btn, "Copied ✓");
     });
   });
 

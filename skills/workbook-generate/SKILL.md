@@ -73,15 +73,24 @@ override, the full catalog is available with sensible defaults. The library
 itself never lives in the consumer spec — only brand theming and thin
 preferences do.
 
+> **What interactivity is FOR here.** The artifact's job is to **display rich
+> information**. Per the source thesis, interactivity earns its place in exactly
+> two ways: (a) **felt understanding** — drag/click and *see* the effect
+> (knobs, diagrams, simulations); or (b) **closing the loop** — hand the learner
+> something to take back to Claude or a mentor (**export / copy-as-prompt**).
+> It does NOT capture answers. Because V1 persists nothing, a widget that
+> records a learner's input and does nothing with it (an ungraded quiz to
+> nowhere, a reflection box that evaporates on refresh) is an anti-pattern.
+> Self-check belongs in **predict-and-reveal** (immediate, no capture); taking
+> work forward belongs in **export**.
+
 ### Baseline (always available)
 
 | Component | Purpose |
 |---|---|
 | **step / section** | A unit of the flow. Each `H2` of a reading is typically one step. |
 | **progress bar** | Course-level and per-module completion %. Updates as the learner advances. |
-| **multiple-choice** | A "check understanding" question with 2-5 options + immediate feedback. Answer held in memory. |
-| **free-text** | A short open-response prompt (reflection / recall). Held in memory. |
-| **completion event** | Fired (not persisted) when the learner reaches the end. A hook point for V2 persistence. |
+| **completion event** | Fired (not persisted) when the learner reaches the end. A hook point for V2. |
 
 ### Progressive disclosure
 
@@ -89,7 +98,14 @@ preferences do.
 |---|---|
 | **accordion** | Collapsible detail blocks. Scaffolds complexity — TL;DR open, depth on demand. |
 | **tabs** | Parallel variants on one surface (e.g. "Python / JS / Go", "before / after"). |
-| **reveal** | A "check your understanding" prompt whose answer is hidden until the learner commits. |
+| **reveal** | Hide content until the learner asks for it. |
+| **predict-and-reveal** | A "think about this first" prompt + a hidden **model answer / expert take**. The self-check pattern — pedagogy via retrieval + immediate feedback, with **no capture and no grading**. Replaces ungraded quizzes/input boxes. |
+
+### Loop-closer (the "stay in the loop" move)
+
+| Component | Purpose |
+|---|---|
+| **export / copy-as-prompt** | A button that copies a ready-made prompt (or the learner's notes) to the clipboard so they can paste it into Claude or send it to a mentor. The only way interaction leaves a no-persistence artifact — turns passive display into two-way. Clipboard has a `file://` fallback. |
 
 ### Inline SVG (restores the spatial dimension)
 
@@ -138,10 +154,10 @@ with text or an icon — never color alone, per the accessibility contract):
 - **accent** (`--wb-accent`) = the *current / focal / interactive* thing — the
   active step, a selected tab, the salient datum on a chart, an interactive
   control, a key term.
-- **good** (`--wb-good`) = *success / correct / done* — a right quiz answer, a
-  completed step, the favourable side of a comparison, added lines in a diff.
-- **bad** (`--wb-bad`) = *error / incorrect / removed* — a wrong answer, the
-  weak side of a comparison, removed lines in a diff.
+- **good** (`--wb-good`) = *success / done / favourable* — a completed step, the
+  favourable side of a comparison, added lines in a diff.
+- **bad** (`--wb-bad`) = *removed / unfavourable* — the weak side of a
+  comparison, removed lines in a diff.
 
 This mirrors the reference site's clay / olive / rust roles. Consumers retheme
 the hexes via the spec's `design.palette`; the *roles* stay fixed so the visual
@@ -169,9 +185,12 @@ There is no rigid formula; the content determines the form. Heuristics:
 - **A quotable / load-bearing sentence** -> a **statement / callout**.
 - **A digression or optional depth** -> an **accordion**.
 - **Parallel alternatives** (languages, approaches) -> **tabs**.
-- **End of each major section** -> an optional auto-generated **multiple-choice**
-  "check understanding" drawn from the reading. Sibling `quiz-*.md` files, when
-  present, fold in as module **checkpoints**.
+- **End of each major section** -> an optional **predict-and-reveal** self-check
+  (a "think about it first" question + a revealed model answer) — not a graded
+  quiz. Sibling `quiz-*.md` files become predict-and-reveal checks.
+- **Something the learner would want to take further** (a parameter they tuned,
+  a reflection, a topic to go deeper on) -> an **export / copy-as-prompt** so it
+  leaves the page as a prompt for Claude or a mentor.
 - **Course intro** -> a **hero** step; **course end** -> a **recap** + the
   **completion event**.
 
@@ -235,7 +254,7 @@ never crash.
 - `prefers-reduced-motion: reduce` disables enter animations and smooth-scroll.
 - Color contrast meets WCAG AA for text on the chosen background (verify the
   consumer's palette; the neutral defaults already pass).
-- Quiz feedback is conveyed by text + icon, not color alone.
+- State conveyed by text + icon, not color alone (e.g. diff add/del, comparison).
 
 ## Anti-patterns
 
@@ -247,5 +266,9 @@ never crash.
   deliberately (and test it) when a concept truly needs something new.
 - Decorative interactivity. Every widget must teach something the prose alone
   could not convey as well.
-- Persisting state in V1. Answers are in-memory; the completion event is a
-  fire-only hook.
+- **Capture-to-nowhere widgets.** Do not add inputs that record a learner's
+  answer and do nothing with it (ungraded quiz, reflection box). With no
+  persistence they are dead ends. Use **predict-and-reveal** for self-check and
+  **export** to take work forward.
+- Persisting state in V1. The completion event is a fire-only hook; nothing
+  else is stored.
