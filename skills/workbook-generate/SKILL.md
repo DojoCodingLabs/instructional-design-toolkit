@@ -182,7 +182,13 @@ grammar is stable across a course (stable grammar = lower cognitive load).
 ## Content-shape -> component mapping (the pedagogical core)
 
 Read the reading's prose and promote it into the component whose shape fits.
-There is no rigid formula; the content determines the form. Heuristics:
+**These are heuristics — starting points, not a lookup table.** Don't map
+mechanically (every table → the same chart). Pick the representation that best
+illuminates *this* concept, and **deliberately vary across a course**: if three
+sections each hold a comparison, they should not become three identical
+diagrams — find the angle each one needs. Monotony (every workbook the same
+shell with swapped text) is a failure mode, not a success criterion. With that
+framing, the heuristics:
 
 - **Course** -> module **chapters** (ordered by module directory), with a
   **table of contents** and course-level **progress**.
@@ -214,6 +220,35 @@ Density guidance: not every paragraph needs a widget. Interactivity should
 earn its place — one well-chosen interactive block per concept beats five
 decorative ones. Long readings get chaptered and made collapsible so the
 single-file artifact stays navigable.
+
+## Invariant frame vs. creative payload (where the latitude is)
+
+The base constrains the **frame**, not the **ideas**. Keep one set of things
+identical across every workbook; let the other set differ freely per concept and
+course:
+
+- **Invariant (always the same):** brand tokens (palette/typography), the
+  accessibility contract, the navigation/flow shell (TOC, progress, module
+  chunking), and the standalone / no-CDN technical rules. Consistency here is the
+  point — don't reinvent it.
+- **Creative (should differ — make it differ):** the prose and explanations, the
+  analogies and examples, **what each diagram actually depicts**, *which*
+  components appear and how they're composed, chart data, comparison axes, knob
+  parameters, simulation design. Two different courses should produce visibly
+  different workbooks — not the same skeleton with the text swapped.
+
+### The kit is a floor, not a ceiling
+
+The component kit is the reliable, tested baseline — **not the limit of what you
+may build.** The biggest creative surface is **inline SVG**: the kit gives you
+the styling shell (`.wb-figure`, brand colors, arrow markers), but *what the
+figure depicts* — a hashing ring, a token-bucket, a state machine, a spatial
+layout unique to the concept — is yours to author. When a concept needs a
+visualization the kit doesn't have, **author it directly** with inline SVG/CSS,
+honoring the design tokens + accessibility contract. Bespoke **static / SVG / CSS**
+visualization is encouraged. The only thing to avoid is fragile, untested
+**stateful JS** widgets — those should be added to the kit deliberately (and
+tested), not improvised per page.
 
 ## Consuming the consumer spec (`instruction-bundle-spec.yaml`)
 
@@ -281,8 +316,14 @@ never crash.
   template. Brand lives in the consumer spec.
 - Hardcoding the component catalog or step patterns here instead of reading
   them from the spec.
-- Freeform per-concept JavaScript. Compose from the kit; extend the kit
-  deliberately (and test it) when a concept truly needs something new.
+- Fragile, untested **stateful JS** widgets improvised per page. Compose
+  stateful interactivity from the tested kit, and extend the kit deliberately
+  (with tests) when a concept truly needs a new interaction. (This is *not* a
+  ban on creative static / SVG / CSS visualization — author those freely; see
+  "The kit is a floor, not a ceiling.")
+- **Monotony.** Mapping every content type to the same component so every
+  workbook is one shell with swapped text. Vary the representation to fit each
+  concept; two different courses should look visibly different.
 - Decorative interactivity. Every widget must teach something the prose alone
   could not convey as well.
 - **Capture-to-nowhere widgets.** Do not add inputs that record a learner's
