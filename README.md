@@ -71,7 +71,7 @@ respeta la distinción pedagógica: cada tipo tiene estructura de session plan
 distinta (coaching = KPI + withdrawal trigger; mentoring = long-term goal +
 relationship history; tutoring = specific topic + success criterion).
 
-## Commands (32)
+## Commands (33)
 
 Los comandos escriben a **dos árboles de output** distintos según su origen:
 
@@ -79,7 +79,7 @@ Los comandos escriben a **dos árboles de output** distintos según su origen:
   cursos y session plans a nivel `course.json` / `session-plan.json`). 12 comandos.
 - **`content/`** — comandos de authoring de contenido migrados desde
   `dojo-academy` (el árbol de contenido real: módulos, clases, quizzes, workbooks,
-  storyboards, paths, tracks, traducciones, QA de release). 20 comandos.
+  storyboards, paths, tracks, traducciones, ilustraciones, QA de release). 21 comandos.
 
 _(Además existen `commands/_translation-pipeline.md` y
 `commands/_translation-strategy.md`: son docs internos de referencia sin
@@ -126,6 +126,7 @@ frontmatter, no comandos invocables.)_
 | `/retention-plan` | Genera un retention plan — proyectos post-curso, spaced review y next steps para seguir construyendo |
 | `/translate-content` | Traduce un curso o módulo completo a Español LATAM (o el locale que configure el consumidor) |
 | `/translate-content-gemini` | Traducción masiva a otro locale con modelo económico (Gemini 3.5 Flash default) vía liteLLM — fan-out de sub-agents por módulo + curación del orquestador. Variante cost-optimized de `/translate-content` |
+| `/illustrate` | Genera el asset set de ilustraciones brandeadas de un curso/módulo vía Gemini API — descubre embeds/manifests pendientes, genera, revisa visualmente y promueve a `content/courses/<slug>/assets/`. Paleta de marca por overlay del consumer |
 
 ## Skills (20)
 
@@ -339,7 +340,7 @@ claude plugins install instructional-design-toolkit
 
 ### v1 (current release)
 
-32 commands + 20 skills + 20 agents + 8 schemas (4 core: `course`,
+33 commands + 20 skills + 20 agents + 8 schemas (4 core: `course`,
 `session-plan-core`, `path` 🆕, `overlay-protocol` 🆕 + 4 profiles) + 11 templates
 (5 `.tmpl` + 5 visualization HTML + 1 workbook HTML) + 11 adapter docs + 10 reference
 docs. Scripts de soporte: `validate_workbook.py` (`/workbook-generate`) y
