@@ -118,7 +118,7 @@ frontmatter, no comandos invocables.)_
 | `/write-quiz` | Genera un quiz de módulo desde las text classes completadas |
 | `/write-video-script` | Genera un video script desde un video brief, con scene tags y filming outline |
 | `/new-storyboard` | Orquesta un storyboard de producción de video desde un video-brief — descompone en escenas A-ROLL (avatar talking-head) y B-ROLL (visual generativo), produce prompts para HeyGen + Higgsfield/Kling y exporta tabla + JSON sidecar |
-| `/slides-generate` | Genera un slide deck estilo Hormozi desde un video brief |
+| `/slides-generate` | Genera un slide deck desde un video brief |
 | `/workbook-generate` | Genera un workbook HTML interactivo standalone para un curso entero desde sus text classes (modelo Articulate-Rise, chunked por módulo; `--scope course\|module`) |
 | `/content-review` | Revisa contenido existente contra quality standards y alineación filosófica |
 | `/module-audit` | Valida completitud de módulo — todos los class types, frontmatter, frameworks, resources y continuidad |
@@ -164,7 +164,7 @@ metodológico.
 | `ship-first-design` | Backward design para builders — alineación assessment↔ship milestone |
 | `learning-evaluation` | Medir si los cursos funcionan — surveys, métricas, retención, rúbricas |
 | `research-methodology` | Estándares de source quality, formatos de artefacto y framework extraction |
-| `slide-design` | Sistema de slides estilo Hormozi — tipos, accent rules, tipografía, anti-patterns |
+| `slide-design` | Sistema de slides — tipos, accent rules, tipografía, anti-patterns |
 
 ## Agents (20)
 

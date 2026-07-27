@@ -1,5 +1,5 @@
 ---
-description: Generate a Hormozi-style slide deck from a video brief
+description: Generate a slide deck from a video brief
 arguments:
   - name: video-brief-path
     description: Path to the video brief markdown file
@@ -12,7 +12,7 @@ arguments:
 
 # Slides Generate
 
-You are generating a Hormozi-style HTML slide deck from a video brief script.
+You are generating an HTML slide deck from a video brief script.
 
 This command produces a full deck (draft-shaped output) — distinct from
 `slides-preview`, which renders an existing per-lesson Marp source. Use
@@ -145,7 +145,7 @@ Parse the video brief's script sections. For each section:
 - **NEVER skip image generation** — if a slide describes a diagram, loop,
   flowchart, process, or comparison, generate the image via Gemini API.
   Text-only slides for visual concepts make the deck look unfinished.
-- **35-40% of slides must be image slides** — this is the Hormozi industry
+- **35-40% of slides must be image slides** — pure text decks read as corporate training
   standard. For a 15-slide deck, that means 5-6 image slides with generated
   branded diagrams. Every analogy, comparison, process, or spatial concept
   should be an image slide, not a text slide.
@@ -280,7 +280,7 @@ apply consumer overlays. The runtime walks
 
 For this command, expect (when a consumer like `dojo-academy` is installed):
 - Structural overlays (priority ~50) — e.g. slide-design: enforce the
-  Hormozi-style mapping rules (35-40% image slides, alternating content /
+  the mapping rules (35-40% image slides, alternating content /
   statement, max 4 bullets per content slide), the `slides-` filename
   convention, the alignment-validation pass count
 - Voice / editorial overlays (priority ~100) — e.g. academy-philosophy:
