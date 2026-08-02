@@ -1,5 +1,5 @@
 ---
-name: slide-design
+name: slides-generate
 description: >
   Slide design system for course videos — slide types, accent rules, typography
   hierarchy, and anti-patterns. Consumer plugins ship the actual HTML/CSS templates referenced
@@ -15,7 +15,7 @@ triggers:
 
 # Slide Design Knowledge Base
 
-This skill encodes the slide-design heuristics for video-class decks. The actual HTML/CSS template artifacts that decks render against are consumer-specific — for example, dojo-academy ships:
+This skill encodes the slide-generation heuristics for video-class decks. The actual HTML/CSS template artifacts that decks render against are consumer-specific — for example, dojo-academy ships:
 
 - `content/_templates/slides/dojo-slides-light.html`
 - `content/_templates/slides/dojo-slides-dark.html`

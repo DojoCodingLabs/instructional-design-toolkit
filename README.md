@@ -164,7 +164,7 @@ metodológico.
 | `ship-first-design` | Backward design para builders — alineación assessment↔ship milestone |
 | `learning-evaluation` | Medir si los cursos funcionan — surveys, métricas, retención, rúbricas |
 | `research-methodology` | Estándares de source quality, formatos de artefacto y framework extraction |
-| `slide-design` | Sistema de slides — tipos, accent rules, tipografía, anti-patterns |
+| `slides-generate` | Sistema de slides — tipos, accent rules, tipografía, anti-patterns |
 
 ## Agents (20)
 

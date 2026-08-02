@@ -32,9 +32,9 @@ just want it rendered.
 ## Phase 1 — Load Context
 
 1. Read the video brief at the path supplied in `$ARGUMENTS`
-2. Read the slide-design skill if the consumer ships one (e.g.
-   `skills/slide-design/SKILL.md` in dojo-academy). The overlay invocation
-   step at the end of this command will surface a consumer's slide-design
+2. Read the `slides-generate` skill if the consumer ships one (e.g.
+   `skills/slides-generate/SKILL.md` in dojo-academy). The overlay invocation
+   step at the end of this command will surface a consumer's `slides-generate`
    overlay automatically when one is installed
 3. Read the appropriate HTML template from the consumer's template folder.
    In dojo-academy the templates live at:
@@ -42,7 +42,7 @@ just want it rendered.
    - Dark theme: `content/_templates/slides/dojo-slides-dark.html`
 
    Other consumers may ship their own templates at a different path — read
-   the template path from the slide-design skill if installed, or fall back
+   the template path from the `slides-generate` skill if installed, or fall back
    to the consumer's `content/_templates/` convention.
 4. Prepare the logo for embedding (dojo-academy specifics shown — other
    consumers ship their own brand assets):
@@ -116,7 +116,7 @@ Parse the video brief's script sections. For each section:
      3. Convert to base64 and embed in `.slide-image-wrapper`
    - The diagram colour palette and the holding folder path
      (`nanobanana-output/` in dojo-academy) are consumer-specific. The
-     consumer's slide-design overlay surfaces the palette and folder
+     consumer's `slides-generate` overlay surfaces the palette and folder
      during the overlay invocation step. The defaults shown above match
      dojo-academy's brand
    - Keep the header short (one line) so the image gets maximum space
@@ -279,7 +279,7 @@ apply consumer overlays. The runtime walks
 `overlay_priority`, and applies them in order.
 
 For this command, expect (when a consumer like `dojo-academy` is installed):
-- Structural overlays (priority ~50) — e.g. slide-design: enforce the
+- Structural overlays (priority ~50) — e.g. `slides-generate`: enforce the
   the mapping rules (35-40% image slides, alternating content /
   statement, max 4 bullets per content slide), the `slides-` filename
   convention, the alignment-validation pass count
@@ -299,10 +299,10 @@ zero overlays in a consumer without `.claude-plugin/plugin.json` — the base
 deck is generated directly with neutral defaults (no brand palette, no
 logo embedding), with no warning.
 
-## Cross-PR dependencies
+## Delegation
 
-This command may delegate slide design to a `slide-designer` agent or a
-slide-design skill. Those migrate from `dojo-academy` in DOJ-3709. Until
-then, the agent / skill is invoked from the consumer's own `agents/` or
-`skills/` directory if present, or the command runs with this prose as its
-sole guide (still functional, just less specialized).
+This command delegates slide design to the `slides-generate` skill
+(`skills/slides-generate/SKILL.md`) and rendering to the `slides-renderer`
+agent, both shipped by this plugin. A consumer may override either from its
+own `agents/` or `skills/` directory; with neither present the command runs
+with this prose as its sole guide (still functional, just less specialized).
