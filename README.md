@@ -71,7 +71,7 @@ respeta la distinción pedagógica: cada tipo tiene estructura de session plan
 distinta (coaching = KPI + withdrawal trigger; mentoring = long-term goal +
 relationship history; tutoring = specific topic + success criterion).
 
-## Commands (33)
+## Commands (34)
 
 Los comandos escriben a **dos árboles de output** distintos según su origen:
 
@@ -127,13 +127,14 @@ frontmatter, no comandos invocables.)_
 | `/translate-content` | Traduce un curso o módulo completo a Español LATAM (o el locale que configure el consumidor) |
 | `/translate-content-gemini` | Traducción masiva a otro locale con modelo económico (Gemini 3.5 Flash default) vía liteLLM — fan-out de sub-agents por módulo + curación del orquestador. Variante cost-optimized de `/translate-content` |
 | `/illustrate` | Genera el asset set de ilustraciones brandeadas de un curso/módulo vía Gemini API — descubre embeds/manifests pendientes, genera, revisa visualmente y promueve a `content/courses/<slug>/assets/`. Paleta de marca por overlay del consumer |
+| `/piber-narrative-architect` | Construye, comprime, transpone o audita una narrativa PIBER (Problem, Insight, Big Idea, Execution, Results) — la estructura de case board de Cannes Lions usada como espina comunicacional universal. Cinco modos: `board`, `compressed`, `transposed`, `audit`, `reverse` |
 
-## Skills (20)
+## Skills (21)
 
 Los skills son el motor de cada flujo. **No hay correspondencia 1:1 comando↔skill**:
-15 skills respaldan comandos (algunos comparten skill — los 3 shortcuts de session
+17 skills respaldan comandos (algunos comparten skill — los 3 shortcuts de session
 plan reusan el flow del `1-on-1-session-planner` omitiendo la detección de tipo), y
-5 son **reference skills** sin comando propio, que otros skills cargan como canon
+4 son **reference skills** sin comando propio, que otros skills cargan como canon
 metodológico.
 
 ### Skills de authoring (respaldan comandos)
@@ -155,6 +156,8 @@ metodológico.
 | `new-path` | Diseño de Path sobre la capa cmi5 + credential OpenBadge 3.0 |
 | `teaching-context` | Genera y valida `teaching-context.md` por curso |
 | `workbook-generate` | Sistema de diseño de workbooks interactivos — text classes → explainer HTML standalone, accesible y navegable (modelo Rise); voice-neutral, el consumidor aporta brand tokens |
+| `slides-generate` | Sistema de slides — tipos, accent rules, tipografía, anti-patterns |
+| `piber-narrative-architect` | Narrativa PIBER (Problem, Insight, Big Idea, Execution, Results) — construcción, compresión, transposición y auditoría de argumentos; gate mecánico en `scripts/piber_gate.py` |
 
 ### Reference skills (sin comando — canon metodológico)
 
@@ -164,7 +167,6 @@ metodológico.
 | `ship-first-design` | Backward design para builders — alineación assessment↔ship milestone |
 | `learning-evaluation` | Medir si los cursos funcionan — surveys, métricas, retención, rúbricas |
 | `research-methodology` | Estándares de source quality, formatos de artefacto y framework extraction |
-| `slides-generate` | Sistema de slides — tipos, accent rules, tipografía, anti-patterns |
 
 ## Agents (20)
 
@@ -340,7 +342,7 @@ claude plugins install instructional-design-toolkit
 
 ### v1 (current release)
 
-33 commands + 20 skills + 20 agents + 8 schemas (4 core: `course`,
+34 commands + 21 skills + 20 agents + 8 schemas (4 core: `course`,
 `session-plan-core`, `path` 🆕, `overlay-protocol` 🆕 + 4 profiles) + 11 templates
 (5 `.tmpl` + 5 visualization HTML + 1 workbook HTML) + 11 adapter docs + 10 reference
 docs. Scripts de soporte: `validate_workbook.py` (`/workbook-generate`) y
