@@ -1,7 +1,7 @@
 ---
-name: slide-design
+name: slides-generate
 description: >
-  Hormozi-style slide design system for course videos — slide types, accent rules, typography
+  Slide design system for course videos — slide types, accent rules, typography
   hierarchy, and anti-patterns. Consumer plugins ship the actual HTML/CSS templates referenced
   here (e.g. dojo-academy ships `content/_templates/slides/dojo-slides-light.html` and
   `dojo-slides-dark.html`).
@@ -15,7 +15,7 @@ triggers:
 
 # Slide Design Knowledge Base
 
-This skill encodes the slide-design heuristics for video-class decks. The actual HTML/CSS template artifacts that decks render against are consumer-specific — for example, dojo-academy ships:
+This skill encodes the slide-generation heuristics for video-class decks. The actual HTML/CSS template artifacts that decks render against are consumer-specific — for example, dojo-academy ships:
 
 - `content/_templates/slides/dojo-slides-light.html`
 - `content/_templates/slides/dojo-slides-dark.html`
@@ -24,7 +24,7 @@ Other consumer plugins may ship their own skinned templates. This skill describe
 
 ## Design Philosophy
 
-Inspired by Alex Hormozi's presentation style: extreme clarity, zero decoration, surgical use of color. Every slide says ONE thing. If the audience can't absorb it in 3 seconds, the slide has too much.
+Three principles: extreme clarity, zero decoration, surgical use of color. Every slide says ONE thing. If the audience can't absorb it in 3 seconds, the slide has too much.
 
 ## The 7 Slide Types
 
@@ -134,7 +134,7 @@ When a slide concept is best explained visually (processes, flows, comparisons, 
 
 ### When to use image slides
 
-**Image density rule: 35-40% of slides must be image slides.** For a 15-slide deck, that means 5-6 image slides. This is the Hormozi industry standard — pure text decks look like corporate training.
+**Image density rule: 35-40% of slides must be image slides.** For a 15-slide deck, that means 5-6 image slides. Pure text decks look like corporate training.
 
 **Two ways to use images:**
 

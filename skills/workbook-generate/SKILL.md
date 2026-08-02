@@ -38,7 +38,7 @@ freeform per-concept JavaScript.
 
 ## What this skill is NOT
 
-- It is **not** a slide system (`slide-design` / `slides-generate` own that).
+- It is **not** a slide system (`slides-generate` owns that).
 - It is **not** a persistence layer. V1 holds all learner answers **in memory
   only** — refresh resets. No `localStorage`, no `postMessage`, no parent-frame
   communication, no backend. (Those are deliberately deferred.)
