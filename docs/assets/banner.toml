@@ -1,0 +1,17 @@
+name = "Instructional Design Toolkit"
+tagline = "Diseño instruccional con [rigor pedagógico]"
+chips = ["33 comandos / 20 skills"]
+meta = "Código disponible · Claude Code"
+tile = "/"
+alt = "Instructional Design Toolkit por Dojo Coding: Diseño instruccional con rigor pedagógico"
+
+[card]
+kind = "ledger"
+label = "Toolkit"
+status = "v1.1.0 · BSL-1.1"
+rows = [
+  ["/new-course", "Diseño guiado de curso completo", "diseño"],
+  ["/write-module", "Todas las clases de un módulo", "contenido"],
+  ["/new-1-on-1-session-plan", "Coaching, mentoring o tutoring", "sesiones"],
+  ["/course-retro", "Retro Kirkpatrick L1-L4", "iteración"],
+]

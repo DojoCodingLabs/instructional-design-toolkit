@@ -1,10 +1,26 @@
-# instructional-design-toolkit
+<p align="center">
+  <a href="https://dojocoding.io">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="docs/assets/banner-light.svg">
+      <img alt="Instructional Design Toolkit por Dojo Coding: Diseño instruccional con rigor pedagógico" src="docs/assets/banner-light.svg" width="100%">
+    </picture>
+  </a>
+</p>
+
+# Instructional Design Toolkit
+
+**Diseño instruccional en Claude Code: cursos cmi5 y planes de sesión 1-on-1 para instructores, founders y equipos.**
 
 Plugin de Claude Code para diseño instructional guiado — **cursos completos
 xAPI + cmi5-compliant**, **contenido de curso end-to-end** (módulos, text
 classes, quizzes, challenges, video scripts, workbooks interactivos, storyboards
 de video), **Paths con credential OpenBadge 3.0**, y **planes de sesiones 1-on-1**
 (coaching / mentoring / tutoring) con rigor pedagógico.
+
+[![Licencia BSL-1.1](https://img.shields.io/badge/licencia-BSL--1.1-FF7151?labelColor=201E3D)](LICENSE) [![Versión 1.1.0](https://img.shields.io/badge/versi%C3%B3n-1.1.0-FF7151?labelColor=201E3D)](.claude-plugin/plugin.json) [![Plugin de Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-201E3D?labelColor=201E3D)](#instalación)
+
+[Empezar](#instalación) · [Comandos](#commands-33) · [Metodología](#core-methodology-insights) · [Reportar un problema](https://github.com/DojoCodingLabs/instructional-design-toolkit/issues/new)
 
 ## Qué hace
 
@@ -389,4 +405,8 @@ PASS/FAIL, complementa `/course-audit`).
 
 ## License
 
-[BSL-1.1](./LICENSE) — Business Source License 1.1.
+[BSL-1.1](./LICENSE) — Business Source License 1.1. Construido por [Dojo Coding](https://dojocoding.io).
+
+<p align="center">
+  <a href="https://dojocoding.io"><img src="docs/assets/dojocoding-mark.png" alt="Dojo Coding" width="48"></a>
+</p>
